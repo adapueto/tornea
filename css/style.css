@@ -106,13 +106,9 @@ a {
 }
 
 .logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--green) 50%, var(--gold) 100%);
+  object-fit: contain;
 }
 
 .logo-text {
