@@ -231,9 +231,20 @@ a {
 }
 
 .search-placeholder {
-  color: var(--gray-text);
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  color: var(--navy);
   font-weight: 600;
   font-size: 0.98rem;
+}
+
+.search-placeholder::placeholder {
+  color: var(--gray-text);
+  font-weight: 600;
 }
 
 /* ===== Features ===== */
