@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar Sesión — Tornea</title>
+  <title>Registrarse — Tornea</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -22,8 +22,8 @@
       <nav class="main-nav">
         <a href="index.html" class="nav-link">Inicio</a>
         <a href="index.html#torneos" class="nav-link">Torneos</a>
-        <a href="login.html" class="btn btn-outline nav-active">Iniciar Sesión</a>
-        <a href="register.html" class="btn btn-gradient">Registrarse</a>
+        <a href="login.html" class="btn btn-outline">Iniciar Sesión</a>
+        <a href="register.html" class="btn btn-gradient nav-active">Registrarse</a>
       </nav>
     </div>
   </header>
@@ -33,8 +33,8 @@
       <div class="auth-card">
         <img src="img/logo.png" alt="Tornea" class="auth-logo-icon" />
 
-        <h1 class="auth-title">¡Bienvenido de nuevo!</h1>
-        <p class="auth-subtitle">Iniciá sesión para seguir tus torneos</p>
+        <h1 class="auth-title">¡Creá tu cuenta!</h1>
+        <p class="auth-subtitle">Registrate para empezar a seguir tus torneos</p>
 
         <form class="auth-form" action="#" method="post">
           <div class="form-group">
@@ -47,19 +47,16 @@
             <input type="password" id="password" name="password" placeholder="••••••••" required />
           </div>
 
-          <div class="form-row">
-            <label class="checkbox-label">
-              <input type="checkbox" name="remember" />
-              Recordarme
-            </label>
-            <a href="#" class="form-link">¿Olvidaste tu contraseña?</a>
+          <div class="form-group">
+            <label for="password-repeat">Repetir contraseña</label>
+            <input type="password" id="password-repeat" name="password-repeat" placeholder="••••••••" required />
           </div>
 
-          <button type="submit" class="btn btn-gradient btn-lg btn-block">INICIAR SESIÓN</button>
+          <button type="submit" class="btn btn-gradient btn-lg btn-block">REGISTRARSE</button>
         </form>
 
         <p class="auth-footer-text">
-          ¿No tenés cuenta? <a href="register.html" class="form-link form-link-strong">Registrate</a>
+          ¿Ya tenés cuenta? <a href="login.html" class="form-link form-link-strong">Iniciá sesión</a>
         </p>
       </div>
     </section>
