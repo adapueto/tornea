@@ -133,6 +133,10 @@ a {
   color: var(--green);
 }
 
+.nav-link.nav-active {
+  color: var(--green);
+}
+
 /* ===== Hero ===== */
 .hero {
   background: linear-gradient(180deg, var(--bg-light) 0%, #f7fafc 60%, var(--white) 100%);
