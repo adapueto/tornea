@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   padding: 56px 24px;
-  background: linear-gradient(180deg, var(--bg-light) 0%, #f7fafc 60%, var(--white) 100%);
+  background: linear-gradient(135deg, var(--navy) 0%, var(--green) 100%);
 }
 
 .auth-card {
