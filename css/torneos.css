@@ -1,0 +1,139 @@
+/* ===== Torneos destacados (home) ===== */
+
+.torneos-destacados {
+  padding: 64px 0 80px;
+}
+
+.section-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.7rem, 3.2vw, 2.2rem);
+  color: var(--navy);
+  text-align: center;
+}
+
+.section-subtitle {
+  margin-top: 8px;
+  color: var(--gray-text);
+  text-align: center;
+}
+
+.torneos-destacados .torneos-grid {
+  margin-top: 36px;
+}
+
+.torneos-cta {
+  margin-top: 36px;
+  text-align: center;
+}
+
+/* ===== Página de torneos ===== */
+
+.torneos-hero {
+  background: linear-gradient(180deg, var(--bg-light) 0%, var(--white) 100%);
+  padding: 56px 0 40px;
+  text-align: center;
+}
+
+.torneos-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  color: var(--navy);
+}
+
+.torneos-subtitle {
+  margin-top: 10px;
+  color: var(--gray-text);
+  font-size: 1.05rem;
+}
+
+.torneos-list {
+  padding: 8px 0 80px;
+}
+
+.torneos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.torneo-card {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.torneo-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.torneo-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--bg-light);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.torneo-estado {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.torneo-estado-publicado {
+  color: var(--green);
+  background: rgba(46, 137, 86, 0.12);
+}
+
+.torneo-estado-en-curso {
+  color: var(--gold);
+  background: rgba(229, 116, 14, 0.12);
+}
+
+.torneo-nombre {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--navy);
+  margin-top: 4px;
+}
+
+.torneo-tipo {
+  color: var(--gray-text);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.torneo-fechas {
+  color: var(--gray-text);
+  font-size: 0.92rem;
+  margin-bottom: 14px;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: auto;
+}
+
+@media (max-width: 960px) {
+  .torneos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .torneos-grid {
+    grid-template-columns: 1fr;
+  }
+}
