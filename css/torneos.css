@@ -52,9 +52,10 @@
   padding: 8px 0 80px;
 }
 
+/* Mobile: una tarjeta por fila */
 .torneos-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
@@ -126,14 +127,18 @@
   margin-top: auto;
 }
 
-@media (max-width: 960px) {
+/* ===== Responsive — mobile first ===== */
+
+/* Tablet y más grande */
+@media (min-width: 640px) {
   .torneos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 640px) {
+/* Laptop y más grande */
+@media (min-width: 960px) {
   .torneos-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
