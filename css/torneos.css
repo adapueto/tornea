@@ -1,3 +1,32 @@
+/* ===== Torneos destacados (home) ===== */
+
+.torneos-destacados {
+  padding: 64px 0 80px;
+}
+
+.section-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.7rem, 3.2vw, 2.2rem);
+  color: var(--navy);
+  text-align: center;
+}
+
+.section-subtitle {
+  margin-top: 8px;
+  color: var(--gray-text);
+  text-align: center;
+}
+
+.torneos-destacados .torneos-grid {
+  margin-top: 36px;
+}
+
+.torneos-cta {
+  margin-top: 36px;
+  text-align: center;
+}
+
 /* ===== Página de torneos ===== */
 
 .torneos-hero {
