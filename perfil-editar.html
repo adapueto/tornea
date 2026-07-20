@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi Perfil — Tornea</title>
+  <title>Editar Perfil — Tornea</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/perfil.css" />
+  <link rel="stylesheet" href="css/auth.css" />
 </head>
 <body>
 
@@ -29,32 +29,49 @@
   </header>
 
   <main>
-    <section class="perfil-section">
-      <div class="container">
-        <div class="perfil-card">
+    <section class="auth-section">
+      <div class="auth-card auth-card-wide">
+        <img src="img/logo.png" alt="Tornea" class="auth-logo-icon" />
 
-          <div class="perfil-avatar">JP</div>
+        <h1 class="auth-title">Editar perfil</h1>
+        <p class="auth-subtitle">Actualizá tus datos personales</p>
 
-          <h1 class="perfil-nombre">Juan Pérez</h1>
-
-          <div class="perfil-badges">
-            <span class="perfil-badge">Participante</span>
-            <span class="perfil-badge perfil-badge-publico">Perfil público</span>
-          </div>
-
-          <div class="perfil-info">
-            <div class="perfil-info-item">
-              <span class="perfil-info-label">Correo electrónico</span>
-              <span class="perfil-info-value">juan.perez@email.com</span>
+        <form class="auth-form" action="#" method="post">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" name="nombre" value="Juan" required />
             </div>
-            <div class="perfil-info-item">
-              <span class="perfil-info-label">Fecha de nacimiento</span>
-              <span class="perfil-info-value">15 de marzo de 1998</span>
+
+            <div class="form-group">
+              <label for="apellido">Apellido</label>
+              <input type="text" id="apellido" name="apellido" value="Pérez" required />
             </div>
           </div>
 
-          <a href="perfil-editar.html" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
-        </div>
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" value="juan.perez@email.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_nac">Fecha de nacimiento</label>
+            <input type="date" id="fecha_nac" name="fecha_nac" value="1998-03-15" />
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox-label">
+              <input type="checkbox" name="perfil_publico" checked />
+              Hacer mi perfil público
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-gradient btn-lg btn-block">GUARDAR CAMBIOS</button>
+        </form>
+
+        <p class="auth-footer-text">
+          <a href="perfil.html" class="form-link form-link-strong">Cancelar y volver a mi perfil</a>
+        </p>
       </div>
     </section>
   </main>
