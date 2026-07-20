@@ -1,4 +1,4 @@
-/* ===== Auth pages (login / registro) ===== */
+/* ===== Auth pages (login / registro / crear torneo) ===== */
 
 .nav-active {
   background: var(--navy);
@@ -15,13 +15,14 @@
   background: linear-gradient(135deg, var(--navy) 0%, var(--green) 100%);
 }
 
+/* Mobile: tarjeta más angosta y con menos aire interno */
 .auth-card {
   width: 100%;
   max-width: 440px;
   background: var(--white);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-soft);
-  padding: 44px 36px;
+  padding: 34px 22px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -100,20 +101,15 @@
   background: var(--white);
 }
 
+/* Mobile: fecha de inicio y fin apiladas */
 .form-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
 .auth-card-wide {
   max-width: 560px;
-}
-
-@media (max-width: 560px) {
-  .form-grid-2 {
-    grid-template-columns: 1fr;
-  }
 }
 
 .form-row {
@@ -162,8 +158,17 @@
   color: var(--gray-text);
 }
 
-@media (max-width: 480px) {
+/* ===== Responsive — mobile first ===== */
+
+/* Tablet y más grande */
+@media (min-width: 480px) {
   .auth-card {
-    padding: 34px 22px;
+    padding: 44px 36px;
+  }
+}
+
+@media (min-width: 560px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
   }
 }
