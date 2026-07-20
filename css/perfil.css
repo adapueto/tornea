@@ -1,0 +1,124 @@
+/* ===== Perfil de participante ===== */
+
+.perfil-section {
+  min-height: calc(100vh - 180px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  background: linear-gradient(180deg, var(--bg-light) 0%, var(--white) 100%);
+}
+
+/* Mobile: tarjeta angosta, menos aire interno */
+.perfil-card {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.perfil-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--green) 100%);
+  color: var(--white);
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+}
+
+.perfil-nombre {
+  margin-top: 18px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--navy);
+}
+
+.perfil-badges {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.perfil-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--bg-light);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.perfil-badge-publico {
+  color: var(--green);
+  background: rgba(46, 137, 86, 0.12);
+}
+
+/* Mobile: los datos apilados, una debajo de la otra */
+.perfil-info {
+  width: 100%;
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.perfil-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--bg-light);
+}
+
+.perfil-info-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.perfil-info-value {
+  font-size: 1rem;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.perfil-card .btn-block {
+  width: 100%;
+  margin-top: 28px;
+}
+
+/* ===== Responsive — mobile first ===== */
+
+/* Tablet y más grande */
+@media (min-width: 640px) {
+  .perfil-card {
+    padding: 44px 40px;
+  }
+
+  .perfil-info {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .perfil-info-item {
+    flex: 1;
+  }
+}
