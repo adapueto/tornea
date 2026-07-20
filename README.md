@@ -4,26 +4,56 @@ Proyecto final de año: una app web para gestionar torneos de **cualquier deport
 
 ## Estado actual
 
-🚧 En construcción. Por ahora el foco está en el **maquetado (HTML + CSS)** de la landing page / home. La conexión a base de datos y la lógica funcional (login, registro, creación de torneos, etc.) se van a agregar más adelante.
+🚧 En construcción. Por ahora el foco está en el **maquetado (HTML + CSS) mobile-first** de todas las pantallas principales. La conexión a base de datos y la lógica funcional (login, registro, creación de torneos, etc.) se van a agregar más adelante.
+
+Los requerimientos completos del proyecto (RF, RNF y el modelo MER) están en [`docs/requerimientos.md`](docs/requerimientos.md).
+
+## Páginas
+
+| Página | Descripción |
+| --- | --- |
+| `index.html` | Home: hero, torneos destacados y features |
+| `login.html` | Inicio de sesión |
+| `register.html` | Registro (nombre, apellido, email, contraseña) |
+| `torneos.html` | Listado completo de torneos publicados |
+| `crear-torneo.html` | Formulario para crear un torneo |
+| `perfil.html` | Vista de perfil del participante (datos de ejemplo) |
+| `perfil-editar.html` | Formulario para editar los datos del perfil |
+
+`perfil.html` y `perfil-editar.html` todavía no están enlazadas desde el resto del sitio — eso depende de tener sesión real.
 
 ## Stack
 
 - **HTML5** semántico
-- **CSS3** puro (sin frameworks todavía — Flexbox y Grid)
+- **CSS3** puro, mobile-first (sin frameworks todavía — Flexbox y Grid, con `@media (min-width: ...)` para tablet/laptop)
 - Google Fonts: `Baloo 2` (títulos) y `Nunito Sans` (texto)
-- Próximamente: JavaScript y una base de datos para persistir torneos, usuarios y resultados
+- Próximamente: JavaScript y PHP + MySQL (arquitectura MVC) para persistir torneos, usuarios y resultados
 
 ## Estructura del proyecto
 
 ```
 tornea/
-├── index.html          # Home de la aplicación
+├── index.html            # Home
+├── login.html             # Inicio de sesión
+├── register.html          # Registro
+├── torneos.html            # Listado de torneos
+├── crear-torneo.html       # Crear torneo
+├── perfil.html              # Vista de perfil
+├── perfil-editar.html       # Editar perfil
 ├── css/
-│   └── style.css       # Estilos del home
+│   ├── style.css          # Estilos base (header, hero, features, footer)
+│   ├── auth.css            # Login, registro, crear torneo, editar perfil
+│   ├── torneos.css         # Torneos destacados y listado de torneos
+│   └── perfil.css          # Vista de perfil
+├── img/
+│   └── logo.png
+├── docs/
+│   └── requerimientos.md  # RF, RNF y resumen del MER
+├── CLAUDE.md               # Contexto del proyecto para Claude Code
 ├── README.md
 └── .claude/
     └── skills/
-        └── git-sync/    # Skill para guardar/subir cambios a GitHub
+        └── git-sync/       # Skill para guardar/subir cambios a GitHub
 ```
 
 ## Cómo verla localmente
@@ -43,19 +73,14 @@ python -m http.server 5500
 
 ## Próximos pasos
 
-- [ ] Maquetar el resto de las secciones (torneos destacados, detalle de torneo, login/registro)
+- [ ] Maquetar vistas de detalle de torneo (calendario, resultados, tabla de posiciones, llaves)
 - [ ] Definir los deportes que va a soportar la plataforma
-- [ ] Sumar interactividad con JavaScript
-- [ ] Conectar a una base de datos (torneos, usuarios, resultados)
+- [ ] Sumar interactividad con JavaScript (estado de sesión, guardado de cambios de perfil, etc.)
+- [ ] Conectar a una base de datos (torneos, usuarios, resultados) con PHP + MySQL
 - [ ] Deploy
 
 ## Git
 
-El repo se inicializa localmente por ahora (todavía no hay remoto en GitHub). Cuando crees el repositorio en GitHub, conectalo con:
-
-```bash
-git remote add origin <URL-del-repo>
-git push -u origin main
-```
+El repo está conectado a GitHub (`adapueto/tornea`). El flujo de trabajo es: un issue por cada tarea, una rama `<número-de-issue>-<slug>` desde `main`, y merge vía Pull Request — no se pushea directo a `main`.
 
 Para el día a día de guardar avances, está la skill `/git-sync` (ver `.claude/skills/git-sync/SKILL.md`).
