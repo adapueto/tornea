@@ -170,7 +170,6 @@
 
 .tabla-posiciones {
   width: 100%;
-  min-width: 480px;
   border-collapse: collapse;
   background: var(--white);
 }
