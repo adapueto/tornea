@@ -1,0 +1,235 @@
+<!--
+  Plantilla de detalle para torneos tipo "liga" (torneo.tipo).
+  Ejemplo mostrado: Liga de Básquet 3x3. Cuando exista el backend (PHP + MySQL),
+  esta plantilla se une con las de eliminación directa y suizo en una sola vista
+  dinámica (torneo-detalle.php?id=) que arma la sección correspondiente según el tipo.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liga de Básquet 3x3 — Tornea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/torneos.css" />
+  <link rel="stylesheet" href="css/torneo-detalle.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="img/logo.png" alt="Tornea" class="logo-icon" />
+        <span class="logo-text">Tornea</span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="torneos.html" class="nav-link nav-active">Torneos</a>
+        <a href="login.html" class="btn btn-outline">Iniciar Sesión</a>
+        <a href="register.html" class="btn btn-gradient">Registrarse</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="torneo-detalle-hero">
+      <div class="container">
+        <a href="torneos.html" class="volver-link">← Volver a torneos</a>
+
+        <div class="torneo-detalle-top">
+          <span class="torneo-badge">🏀 Básquet</span>
+          <span class="torneo-estado torneo-estado-en-curso">En curso</span>
+        </div>
+
+        <h1 class="torneo-detalle-nombre">Liga de Básquet 3x3</h1>
+
+        <ul class="torneo-detalle-datos">
+          <li><strong>Tipo:</strong> Liga</li>
+          <li><strong>Fechas:</strong> 15 jun — 30 jul 2026</li>
+          <li><strong>Modalidad:</strong> Por equipos (3x3)</li>
+        </ul>
+
+        <p class="torneo-detalle-descripcion">
+          Cinco equipos juegan todos contra todos a una rueda. Cada partido ganado suma
+          puntos en la tabla de posiciones, que se actualiza automáticamente al cargar un resultado.
+        </p>
+      </div>
+    </section>
+
+    <section class="posiciones-section">
+      <div class="container">
+        <h2 class="section-title">Tabla de posiciones</h2>
+        <p class="section-subtitle">Actualizada después de la Fecha 3.</p>
+
+        <div class="tabla-posiciones-wrap">
+          <table class="tabla-posiciones">
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Equipo</th>
+                <th>PJ</th>
+                <th>PG</th>
+                <th>PP</th>
+                <th>Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fila-lider">
+                <td>1</td>
+                <td>Águilas 3x3</td>
+                <td>3</td>
+                <td>3</td>
+                <td>0</td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Halcones Urbanos</td>
+                <td>3</td>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Toros del Sur</td>
+                <td>3</td>
+                <td>1</td>
+                <td>2</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Panteras Negras</td>
+                <td>3</td>
+                <td>1</td>
+                <td>2</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Rayo Naranja</td>
+                <td>3</td>
+                <td>1</td>
+                <td>2</td>
+                <td>1</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="calendario-section">
+      <div class="container">
+        <h2 class="section-title">Calendario y resultados</h2>
+        <p class="section-subtitle">Partidos jugados y próxima fecha.</p>
+
+        <div class="calendario-fechas">
+
+          <div class="fecha-grupo">
+            <h3 class="bracket-round-title">Fecha 3 · jugada</h3>
+            <div class="bracket-matches">
+
+              <article class="match-card">
+                <div class="match-teams">
+                  <div class="match-team match-team-ganador">
+                    <span class="match-team-nombre">Águilas 3x3</span>
+                    <span class="match-team-score">21</span>
+                  </div>
+                  <div class="match-team">
+                    <span class="match-team-nombre">Panteras Negras</span>
+                    <span class="match-team-score">16</span>
+                  </div>
+                </div>
+                <div class="match-meta">
+                  <span class="match-fecha">13 jul 2026</span>
+                  <span class="match-estado match-estado-finalizado">Finalizado</span>
+                </div>
+              </article>
+
+              <article class="match-card">
+                <div class="match-teams">
+                  <div class="match-team">
+                    <span class="match-team-nombre">Toros del Sur</span>
+                    <span class="match-team-score">14</span>
+                  </div>
+                  <div class="match-team match-team-ganador">
+                    <span class="match-team-nombre">Halcones Urbanos</span>
+                    <span class="match-team-score">19</span>
+                  </div>
+                </div>
+                <div class="match-meta">
+                  <span class="match-fecha">13 jul 2026</span>
+                  <span class="match-estado match-estado-finalizado">Finalizado</span>
+                </div>
+              </article>
+
+            </div>
+          </div>
+
+          <div class="fecha-grupo">
+            <h3 class="bracket-round-title">Fecha 4 · próxima</h3>
+            <div class="bracket-matches">
+
+              <article class="match-card">
+                <div class="match-teams">
+                  <div class="match-team">
+                    <span class="match-team-nombre">Rayo Naranja</span>
+                  </div>
+                  <div class="match-team">
+                    <span class="match-team-nombre">Águilas 3x3</span>
+                  </div>
+                </div>
+                <div class="match-meta">
+                  <span class="match-fecha">20 jul 2026</span>
+                  <span class="match-estado match-estado-pendiente">Pendiente</span>
+                </div>
+              </article>
+
+              <article class="match-card">
+                <div class="match-teams">
+                  <div class="match-team">
+                    <span class="match-team-nombre">Panteras Negras</span>
+                  </div>
+                  <div class="match-team">
+                    <span class="match-team-nombre">Toros del Sur</span>
+                  </div>
+                </div>
+                <div class="match-meta">
+                  <span class="match-fecha">20 jul 2026</span>
+                  <span class="match-estado match-estado-pendiente">Pendiente</span>
+                </div>
+              </article>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="social-links">
+        <a href="#" aria-label="Facebook" class="social-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M13.5 21v-7.7h2.6l.4-3h-3v-1.9c0-.9.2-1.5 1.5-1.5h1.6V4.2C15.9 4.1 15 4 14 4c-2.4 0-4 1.5-4 4.1V10H7.4v3h2.6v8h3.5z"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram" class="social-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+        </a>
+        <a href="#" aria-label="YouTube" class="social-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C18.3 5 12 5 12 5s-6.3 0-7.8.5a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C5.7 19 12 19 12 19s6.3 0 7.8-.5a2.5 2.5 0 0 0 1.8-1.8c.4-1.5.4-4.7.4-4.7zM10 15.3V8.7l5.8 3.3L10 15.3z"/></svg>
+        </a>
+      </div>
+      <p class="copyright">© 2026 Tornea</p>
+    </div>
+  </footer>
+
+</body>
+</html>

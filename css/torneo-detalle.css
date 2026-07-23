@@ -1,0 +1,238 @@
+/* ===== Cabecera de detalle de torneo ===== */
+
+.torneo-detalle-hero {
+  background: linear-gradient(180deg, var(--bg-light) 0%, var(--white) 100%);
+  padding: 32px 0 40px;
+}
+
+.volver-link {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--navy-light);
+  margin-bottom: 20px;
+}
+
+.volver-link:hover {
+  color: var(--green);
+}
+
+.torneo-detalle-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.torneo-detalle-nombre {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  color: var(--navy);
+  margin-top: 14px;
+}
+
+/* Mobile: cada dato en su propia línea */
+.torneo-detalle-datos {
+  list-style: none;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--gray-text);
+  font-size: 0.95rem;
+}
+
+.torneo-detalle-datos strong {
+  color: var(--navy);
+}
+
+.torneo-detalle-descripcion {
+  margin-top: 18px;
+  color: var(--gray-text);
+  max-width: 65ch;
+  line-height: 1.6;
+}
+
+/* ===== Llaves (bracket) ===== */
+
+.bracket-section {
+  padding: 48px 0 80px;
+}
+
+.bracket {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.bracket-round-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+
+.bracket-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.match-card {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 18px 20px;
+}
+
+.match-card-final {
+  border: 2px solid var(--gold);
+}
+
+.match-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--gray-text);
+}
+
+.match-team-ganador {
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.match-team-score {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+}
+
+.match-meta {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.match-fecha {
+  color: var(--gray-text);
+}
+
+.match-estado {
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+}
+
+.match-estado-finalizado {
+  color: var(--green);
+  background: rgba(46, 137, 86, 0.12);
+}
+
+.match-estado-en-curso {
+  color: var(--gold);
+  background: rgba(229, 116, 14, 0.12);
+}
+
+.match-estado-pendiente {
+  color: var(--navy-light);
+  background: var(--bg-light);
+}
+
+/* ===== Tabla de posiciones (liga) ===== */
+
+.posiciones-section {
+  padding: 48px 0 20px;
+}
+
+.calendario-section {
+  padding: 20px 0 80px;
+}
+
+/* Scroll horizontal propio para que la tabla no desborde en mobile */
+.tabla-posiciones-wrap {
+  margin-top: 32px;
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.tabla-posiciones {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  background: var(--white);
+}
+
+.tabla-posiciones th,
+.tabla-posiciones td {
+  padding: 14px 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tabla-posiciones th:first-child,
+.tabla-posiciones td:first-child,
+.tabla-posiciones th:nth-child(2),
+.tabla-posiciones td:nth-child(2) {
+  text-align: left;
+}
+
+.tabla-posiciones th {
+  background: var(--bg-light);
+  color: var(--navy);
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tabla-posiciones td {
+  color: var(--gray-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--bg-light);
+}
+
+.fila-lider td {
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.calendario-fechas {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ===== Responsive — mobile first ===== */
+
+/* Tablet y más grande: las rondas del bracket se acomodan en columnas */
+@media (min-width: 768px) {
+  .bracket {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .bracket-round {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .torneo-detalle-datos {
+    flex-direction: row;
+    gap: 28px;
+  }
+}
