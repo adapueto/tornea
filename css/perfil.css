@@ -2,11 +2,15 @@
 
 .perfil-section {
   min-height: calc(100vh - 180px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 56px 24px;
   background: linear-gradient(180deg, var(--bg-light) 0%, var(--white) 100%);
+}
+
+/* Mobile: columna izquierda (perfil) y derecha (torneos) apiladas */
+.perfil-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 /* Mobile: tarjeta angosta, menos aire interno */
@@ -105,6 +109,27 @@
   margin-top: 28px;
 }
 
+/* ===== Columna derecha: torneos publicados ===== */
+
+.perfil-torneos-titulo {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--navy);
+}
+
+.perfil-torneos-subtitle {
+  margin-top: 6px;
+  color: var(--gray-text);
+}
+
+.perfil-torneos-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
 /* ===== Responsive — mobile first ===== */
 
 /* Tablet y más grande */
@@ -120,5 +145,31 @@
 
   .perfil-info-item {
     flex: 1;
+  }
+
+  .perfil-torneos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Laptop y más grande: perfil y torneos lado a lado */
+@media (min-width: 960px) {
+  .perfil-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .perfil-card {
+    flex: 0 0 360px;
+    margin: 0;
+  }
+
+  .perfil-torneos {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .perfil-torneos-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

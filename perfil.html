@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/torneos.css" />
   <link rel="stylesheet" href="css/perfil.css" />
 </head>
 <body>
@@ -30,7 +31,8 @@
 
   <main>
     <section class="perfil-section">
-      <div class="container">
+      <div class="container perfil-layout">
+
         <div class="perfil-card">
 
           <div class="perfil-avatar">JP</div>
@@ -55,6 +57,40 @@
 
           <a href="perfil-editar.html" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
         </div>
+
+        <div class="perfil-torneos">
+          <div class="perfil-torneos-header">
+            <h2 class="perfil-torneos-titulo">Torneos publicados</h2>
+            <p class="perfil-torneos-subtitle">Los torneos que creaste, como ejemplo de cómo se ven.</p>
+          </div>
+
+          <div class="perfil-torneos-grid">
+
+            <article class="torneo-card">
+              <div class="torneo-card-top">
+                <span class="torneo-badge">🏀 Básquet</span>
+                <span class="torneo-estado torneo-estado-en-curso">En curso</span>
+              </div>
+              <h3 class="torneo-nombre">Liga de Básquet 3x3</h3>
+              <p class="torneo-tipo">Liga</p>
+              <p class="torneo-fechas">15 jun — 30 jul 2026</p>
+              <a href="torneo-detalle-liga.html" class="btn btn-outline btn-block">Ver detalle</a>
+            </article>
+
+            <article class="torneo-card">
+              <div class="torneo-card-top">
+                <span class="torneo-badge">♟️ Ajedrez</span>
+                <span class="torneo-estado torneo-estado-publicado">Publicado</span>
+              </div>
+              <h3 class="torneo-nombre">Torneo Suizo de Ajedrez</h3>
+              <p class="torneo-tipo">Sistema suizo</p>
+              <p class="torneo-fechas">5 ago 2026</p>
+              <a href="torneo-detalle-suizo.html" class="btn btn-outline btn-block">Ver detalle</a>
+            </article>
+
+          </div>
+        </div>
+
       </div>
     </section>
   </main>
