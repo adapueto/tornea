@@ -150,6 +150,72 @@
   background: var(--bg-light);
 }
 
+/* ===== Tabla de posiciones (liga) ===== */
+
+.posiciones-section {
+  padding: 48px 0 20px;
+}
+
+.calendario-section {
+  padding: 20px 0 80px;
+}
+
+/* Scroll horizontal propio para que la tabla no desborde en mobile */
+.tabla-posiciones-wrap {
+  margin-top: 32px;
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.tabla-posiciones {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  background: var(--white);
+}
+
+.tabla-posiciones th,
+.tabla-posiciones td {
+  padding: 14px 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tabla-posiciones th:first-child,
+.tabla-posiciones td:first-child,
+.tabla-posiciones th:nth-child(2),
+.tabla-posiciones td:nth-child(2) {
+  text-align: left;
+}
+
+.tabla-posiciones th {
+  background: var(--bg-light);
+  color: var(--navy);
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tabla-posiciones td {
+  color: var(--gray-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--bg-light);
+}
+
+.fila-lider td {
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.calendario-fechas {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
 /* ===== Responsive — mobile first ===== */
 
 /* Tablet y más grande: las rondas del bracket se acomodan en columnas */
