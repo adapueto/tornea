@@ -50,6 +50,13 @@
   color: var(--navy);
 }
 
+.perfil-descripcion {
+  margin-top: 8px;
+  color: var(--gray-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 .perfil-badges {
   margin-top: 10px;
   display: flex;
@@ -128,6 +135,59 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
+}
+
+/* ===== Torneos en los que participé (lista compacta) ===== */
+
+.perfil-participaciones {
+  margin-top: 36px;
+}
+
+.participacion-list {
+  list-style: none;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.participacion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 18px;
+}
+
+.participacion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.participacion-nombre {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 0.95rem;
+}
+
+.participacion-tipo {
+  color: var(--gray-text);
+  font-size: 0.8rem;
+}
+
+.participacion-resultado {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(46, 137, 86, 0.12);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  white-space: nowrap;
 }
 
 /* ===== Responsive — mobile first ===== */
