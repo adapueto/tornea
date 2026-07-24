@@ -119,11 +119,10 @@ a {
   object-fit: contain;
 }
 
-.logo-text {
-  font-family: 'Baloo 2', sans-serif;
-  font-weight: 800;
-  font-size: 1.3rem;
-  color: var(--navy);
+.logo-wordmark {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* Mobile: sin lugar para los links de texto, solo se ven los botones */
@@ -416,8 +415,8 @@ a {
     height: 42px;
   }
 
-  .logo-text {
-    font-size: 1.6rem;
+  .logo-wordmark {
+    height: 28px;
   }
 
   .btn {
