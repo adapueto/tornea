@@ -83,6 +83,7 @@
 .match-card {
   background: var(--white);
   border-radius: var(--radius-card);
+  border-left: 4px solid var(--navy-light);
   box-shadow: var(--shadow-soft);
   padding: 18px 20px;
 }
@@ -91,28 +92,41 @@
   border: 2px solid var(--gold);
 }
 
+/* Semifinal: la anteúltima ronda, sin importar cuántas rondas haya antes (octavos, dieciseisavos, etc.) */
+.bracket-round:nth-last-of-type(2) .match-card {
+  border-left-color: var(--green);
+}
+
 .match-teams {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .match-team {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 10px;
   font-weight: 600;
   color: var(--gray-text);
 }
 
+/* Se aplica solo al equipo/jugador que ganó el cruce (no a partidos pendientes o en curso, ahí ninguno de los dos lleva esta clase) */
 .match-team-ganador {
   color: var(--navy);
   font-weight: 800;
+  background: rgba(46, 137, 86, 0.12);
 }
 
 .match-team-score {
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
+}
+
+.match-team-ganador .match-team-score {
+  color: var(--green);
 }
 
 .match-meta {
