@@ -59,4 +59,26 @@ class Usuario {
 
         return ['exito' => true, 'usuario' => $usuario];
     }
+
+    public function buscarPorId($id) {
+    $stmt = $this->pdo->prepare('
+        SELECT u.*, r.nombre as rol 
+        FROM usuarios u
+        JOIN usuario_roles ur ON u.id = ur.usuario_id
+        JOIN roles r ON ur.rol_id = r.id
+        WHERE u.id = ?
+    ');
+    $stmt->execute([$id]);
+    return $stmt->fetch();
+}
+
+    public function actualizar($id, $nombre, $apellido, $email, $fecha_nac, $perfil_publico) {
+    $stmt = $this->pdo->prepare('
+        UPDATE usuarios 
+        SET nombre = ?, apellido = ?, email = ?, fecha_nac = ?, perfil_publico = ?
+        WHERE id = ?
+    ');
+    $stmt->execute([$nombre, $apellido, $email, $fecha_nac, $perfil_publico, $id]);
+    return ['exito' => true, 'mensaje' => 'Perfil actualizado correctamente'];
+}
 }

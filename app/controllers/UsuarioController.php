@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 require_once __DIR__ . '/../models/usuario.php';
 
@@ -49,8 +51,28 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+if ($accion === 'actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_SESSION['usuario']['id'];
+    $nombre = $_POST['nombre'] ?? '';
+    $apellido = $_POST['apellido'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $fecha_nac = !empty($_POST['fecha_nac']) ? $_POST['fecha_nac'] : null;
+    $perfil_publico = isset($_POST['perfil_publico']) ? 1 : 0;
+
+    $resultado = $usuario->actualizar($id, $nombre, $apellido, $email, $fecha_nac, $perfil_publico);
+
+    if ($resultado['exito']) {
+        $datos = $usuario->buscarPorId($id);
+        $_SESSION['usuario'] = $datos;
+        $_SESSION['exito'] = $resultado['mensaje'];
+    }
+
+    header('Location: /tornea/perfil.php');
+    exit;
+}
+
 if ($accion === 'logout') {
     session_destroy();
-    header('Location: /tornea/index.html');
+    header('Location: /tornea/app/views/login.php');
     exit;
 }

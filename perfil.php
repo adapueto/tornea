@@ -19,19 +19,19 @@ $usuario = $_SESSION['usuario'];
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
   <link rel="stylesheet" href="/tornea/css/torneos.css" />
-  <link rel="stylesheet" href="/tornea/css/perfil.css" />
+  <link rel="stylesheet" href="/tornea/css/perfil.css?v=2" />
 </head>
 <body>
 
   <header class="site-header">
     <div class="container header-inner">
-      <a href="/tornea/index.html" class="logo">
+      <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <span class="logo-text">Tornea</span>
+        <img src="img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
       </a>
       <nav class="main-nav">
-        <a href="/tornea/index.html" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.html" class="nav-link">Torneos</a>
+        <a href="/tornea/index.php" class="nav-link">Inicio</a>
+        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
         <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-outline">Cerrar Sesión</a>
       </nav>
     </div>
@@ -53,6 +53,8 @@ $usuario = $_SESSION['usuario'];
             <span class="perfil-badge"><?= ucfirst($usuario['rol']) ?></span>
             <?php if ($usuario['perfil_publico']): ?>
               <span class="perfil-badge perfil-badge-publico">Perfil público</span>
+            <?php else: ?>
+              <span class="perfil-badge perfil-badge-privado">Perfil privado</span>
             <?php endif; ?>
           </div>
 
@@ -61,9 +63,15 @@ $usuario = $_SESSION['usuario'];
               <span class="perfil-info-label">Correo electrónico</span>
               <span class="perfil-info-value"><?= $usuario['email'] ?></span>
             </div>
+            <?php if (!empty($usuario['fecha_nac'])): ?>
+              <div class="perfil-info-item">
+                <span class="perfil-info-label">Fecha de nacimiento</span>
+                <span class="perfil-info-value"><?= date('d/m/Y', strtotime($usuario['fecha_nac'])) ?></span>
+              </div>
+            <?php endif; ?>
           </div>
 
-          <a href="/tornea/perfil-editar.html" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
+          <a href="/tornea/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
         </div>
 
       </div>

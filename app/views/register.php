@@ -17,7 +17,7 @@
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <span class="logo-text">Tornea</span>
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
       </a>
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
