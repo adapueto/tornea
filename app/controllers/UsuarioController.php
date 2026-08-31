@@ -43,7 +43,7 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($resultado['exito']) {
         $_SESSION['usuario'] = $resultado['usuario'];
-        header('Location: /tornea/perfil.php');
+        header('Location: /tornea/app/views/perfil.php');
     } else {
         $_SESSION['error'] = $resultado['mensaje'];
         header('Location: /tornea/app/views/login.php');
@@ -67,7 +67,7 @@ if ($accion === 'actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['exito'] = $resultado['mensaje'];
     }
 
-    header('Location: /tornea/perfil.php');
+    header('Location: /tornea/app/views/perfil.php');
     exit;
 }
 

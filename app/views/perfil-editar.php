@@ -26,13 +26,13 @@ $usuario = $_SESSION['usuario'];
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
       </a>
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
         <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/perfil.php" class="btn btn-outline">
+          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
             <?= $_SESSION['usuario']['nombre'] ?>
           </a>
           <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
@@ -89,7 +89,7 @@ $usuario = $_SESSION['usuario'];
         </form>
 
         <p class="auth-footer-text">
-          <a href="/tornea/perfil.php" class="form-link form-link-strong">Cancelar y volver a mi perfil</a>
+          <a href="/tornea/app/views/perfil.php" class="form-link form-link-strong">Cancelar y volver a mi perfil</a>
         </p>
       </div>
     </section>

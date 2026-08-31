@@ -21,7 +21,7 @@
       </a>
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
         <a href="/tornea/app/views/login.php" class="btn btn-outline">Iniciar Sesión</a>
         <a href="/tornea/app/views/register.php" class="btn btn-gradient nav-active">Registrarse</a>
       </nav>

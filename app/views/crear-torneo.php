@@ -11,8 +11,8 @@ session_start();
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/auth.css" />
 </head>
 <body>
 
@@ -20,14 +20,14 @@ session_start();
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
       </a>
       
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
         <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/perfil.php" class="btn btn-outline">
+          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
             <?= $_SESSION['usuario']['nombre'] ?>
           </a>
           <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
@@ -42,7 +42,7 @@ session_start();
   <main>
     <section class="auth-section">
       <div class="auth-card auth-card-wide">
-        <img src="img/logo.png" alt="Tornea" class="auth-logo-icon" />
+        <img src="/tornea/img/logo.png" alt="Tornea" class="auth-logo-icon" />
 
         <h1 class="auth-title">Creá tu torneo</h1>
         <p class="auth-subtitle">Completá los datos básicos para arrancar</p>

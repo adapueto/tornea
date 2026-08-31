@@ -27,11 +27,11 @@ $usuario = $_SESSION['usuario'];
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
       </a>
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
         <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-outline">Cerrar Sesión</a>
       </nav>
     </div>
@@ -71,7 +71,7 @@ $usuario = $_SESSION['usuario'];
             <?php endif; ?>
           </div>
 
-          <a href="/tornea/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
+          <a href="/tornea/app/views/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
         </div>
 
       </div>

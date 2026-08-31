@@ -26,9 +26,9 @@ session_start();
 
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
         <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/perfil.php" class="btn btn-outline">
+          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
             <?= $_SESSION['usuario']['nombre'] ?>
           </a>
           <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
@@ -52,7 +52,7 @@ session_start();
           </h1>
           <p class="hero-subtitle">Desde fútbol amateur hasta eSports, Tornea organiza todo.</p>
           <div class="hero-actions">
-            <a href="/tornea/crear-torneo.php" class="btn btn-gradient btn-lg">
+            <a href="/tornea/app/views/crear-torneo.php" class="btn btn-gradient btn-lg">
               <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5 4h14v2a4 4 0 0 1-4 4h-.1A5 5 0 0 1 13 13.9V17h3v2H8v-2h3v-3.1A5 5 0 0 1 9.1 10H9a4 4 0 0 1-4-4V4zm2 2v0a2 2 0 0 0 2 2h.3A5 5 0 0 1 9 6V6H7zm10 0h-2v0a5 5 0 0 1-.3 2h.3a2 2 0 0 0 2-2V6z"/></svg>
               CREA TU TORNEO
             </a>
@@ -145,7 +145,7 @@ session_start();
         </div>
 
         <div class="torneos-cta">
-          <a href="/tornea/torneos.php" class="btn btn-gradient btn-lg">Ver todos los torneos</a>
+          <a href="/tornea/app/views/torneos.php" class="btn btn-gradient btn-lg">Ver todos los torneos</a>
         </div>
       </div>
     </section>
