@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/usuario.php';
 
 session_start();
 
@@ -51,6 +51,6 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($accion === 'logout') {
     session_destroy();
-    header('Location: /tornea/index.php');
+    header('Location: /tornea/index.html');
     exit;
 }

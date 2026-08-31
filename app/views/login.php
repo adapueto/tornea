@@ -15,13 +15,13 @@
 
   <header class="site-header">
     <div class="container header-inner">
-      <a href="/tornea/index.php" class="logo">
+      <a href="/tornea/index.html" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
         <span class="logo-text">Tornea</span>
       </a>
       <nav class="main-nav">
-        <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/index.html" class="nav-link">Inicio</a>
+        <a href="/tornea/torneos.html" class="nav-link">Torneos</a>
         <a href="/tornea/app/views/login.php" class="btn btn-outline nav-active">Iniciar Sesión</a>
         <a href="/tornea/app/views/register.php" class="btn btn-gradient">Registrarse</a>
       </nav>
