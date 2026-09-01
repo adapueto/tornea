@@ -79,6 +79,11 @@
   background: rgba(46, 137, 86, 0.12);
 }
 
+.perfil-badge-privado {
+  color: var(--red);
+  background: rgba(192, 57, 43, 0.12);
+}
+
 /* Mobile: los datos apilados, una debajo de la otra */
 .perfil-info {
   width: 100%;

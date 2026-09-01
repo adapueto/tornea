@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,23 +8,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/auth.css" />
 </head>
 <body>
 
   <header class="site-header">
     <div class="container header-inner">
-      <a href="index.html" class="logo">
-        <img src="img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
+      <a href="/tornea/index.php" class="logo">
+        <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
       </a>
-
       <nav class="main-nav">
-        <a href="index.html" class="nav-link">Inicio</a>
-        <a href="torneos.html" class="nav-link">Torneos</a>
-        <a href="login.html" class="btn btn-outline">Iniciar Sesión</a>
-        <a href="register.html" class="btn btn-gradient nav-active">Registrarse</a>
+        <a href="/tornea/index.php" class="nav-link">Inicio</a>
+        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
+        <a href="/tornea/app/views/login.php" class="btn btn-outline">Iniciar Sesión</a>
+        <a href="/tornea/app/views/register.php" class="btn btn-gradient nav-active">Registrarse</a>
       </nav>
     </div>
   </header>
@@ -31,18 +31,21 @@
   <main>
     <section class="auth-section">
       <div class="auth-card">
-        <img src="img/logo.png" alt="Tornea" class="auth-logo-icon" />
+        <img src="/tornea/img/logo.png" alt="Tornea" class="auth-logo-icon" />
 
         <h1 class="auth-title">¡Creá tu cuenta!</h1>
         <p class="auth-subtitle">Registrate para empezar a seguir tus torneos</p>
 
-        <form class="auth-form" action="#" method="post">
+        <?php if (isset($_SESSION['error'])): ?>
+          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+        <?php endif; ?>
+
+        <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=registrar" method="post">
           <div class="form-grid-2">
             <div class="form-group">
               <label for="nombre">Nombre</label>
               <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required />
             </div>
-
             <div class="form-group">
               <label for="apellido">Apellido</label>
               <input type="text" id="apellido" name="apellido" placeholder="Tu apellido" required />
@@ -68,7 +71,7 @@
         </form>
 
         <p class="auth-footer-text">
-          ¿Ya tenés cuenta? <a href="login.html" class="form-link form-link-strong">Iniciá sesión</a>
+          ¿Ya tenés cuenta? <a href="/tornea/app/views/login.php" class="form-link form-link-strong">Iniciá sesión</a>
         </p>
       </div>
     </section>
@@ -76,18 +79,7 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <div class="social-links">
-        <a href="#" aria-label="Facebook" class="social-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M13.5 21v-7.7h2.6l.4-3h-3v-1.9c0-.9.2-1.5 1.5-1.5h1.6V4.2C15.9 4.1 15 4 14 4c-2.4 0-4 1.5-4 4.1V10H7.4v3h2.6v8h3.5z"/></svg>
-        </a>
-        <a href="#" aria-label="Instagram" class="social-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-        </a>
-        <a href="#" aria-label="YouTube" class="social-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M22 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C18.3 5 12 5 12 5s-6.3 0-7.8.5a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C5.7 19 12 19 12 19s6.3 0 7.8-.5a2.5 2.5 0 0 0 1.8-1.8c.4-1.5.4-4.7.4-4.7zM10 15.3V8.7l5.8 3.3L10 15.3z"/></svg>
-        </a>
-      </div>
-      <p class="copyright">© 2026 Terobyte</p>
+      <p class="copyright">© 2026 Tornea</p>
     </div>
   </footer>
 
