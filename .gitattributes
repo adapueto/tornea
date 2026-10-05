@@ -1,0 +1,2 @@
+# Los scripts que corren dentro de Linux (Docker) necesitan saltos de línea LF
+*.sh text eol=lf

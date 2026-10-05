@@ -1,0 +1,45 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: tornea
+      DB_USER: tornea_app
+      DB_PASS: ${DB_APP_PASSWORD:-tornea_app_dev}
+    volumes:
+      # Monta el código para ver los cambios sin reconstruir la imagen
+      - ./:/var/www/html/tornea
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_dev}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-tornea_app_dev}
+      DB_READONLY_PASSWORD: ${DB_READONLY_PASSWORD:-tornea_readonly_dev}
+      DB_BACKUP_PASSWORD: ${DB_BACKUP_PASSWORD:-tornea_backup_dev}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      # 3307 en la máquina para no chocar con un MySQL/XAMPP local
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Se ejecutan en orden alfabético solo la primera vez (volumen vacío)
+      - ./database/tornea.sql:/docker-entrypoint-initdb.d/01-tornea.sql:ro
+      - ./database/docker/02-dcl.sh:/docker-entrypoint-initdb.d/02-dcl.sh:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro
+    healthcheck:
+      # Por TCP: durante la carga inicial MySQL no escucha en red, así que
+      # "web" no arranca hasta que terminen los scripts de inicialización
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASSWORD:-root_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  db_data:

@@ -80,6 +80,37 @@ npx serve .
 python -m http.server 5500
 ```
 
+## Cómo levantarlo con Docker
+
+Requiere Docker Desktop. Desde la raíz del proyecto:
+
+```bash
+docker compose up --build
+```
+
+- App: <http://localhost:8080> (redirige a `/tornea/`)
+- MySQL: `localhost:3307` (usuario `root`, contraseña `root_dev`)
+
+La primera vez (volumen vacío) MySQL ejecuta solo, en orden, los scripts de `/docker-entrypoint-initdb.d/`:
+
+1. `database/tornea.sql` — estructura (DDL)
+2. `database/docker/02-dcl.sh` — usuarios `tornea_app`, `tornea_readonly`, `tornea_backup` y sus permisos (DCL)
+3. `database/seed.sql` — datos de prueba
+
+La app se conecta con `tornea_app` (solo `SELECT/INSERT/UPDATE/DELETE`). Las contraseñas se pueden cambiar copiando `.env.example` a `.env`.
+
+**Cuentas de prueba** (contraseña `tornea123` para todas): `admin@tornea.test` (admin), usuarios 2 a 13 son organizadores y el resto participantes. Los emails se pueden ver con `SELECT id, email FROM usuarios;`.
+
+Para borrar la base y volver a cargar todo desde cero (por ejemplo, después de cambiar `tornea.sql` o `seed.sql`):
+
+```bash
+docker compose down -v
+```
+
+### Datos de prueba
+
+`database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 120 usuarios, 60 torneos de los tres tipos y en todos los estados, equipos con invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo `roles` (son 3 por definición).
+
 ## Próximos pasos
 
 - [x] Maquetar vistas de detalle de torneo (calendario, resultados, tabla de posiciones, llaves)
