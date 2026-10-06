@@ -313,3 +313,37 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* ===== Panel de gestión (solo organizadores) ===== */
+
+.gestion-section {
+  padding: 32px 0 0;
+}
+
+.gestion-panel {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  border-top: 4px solid var(--gold);
+  padding: 24px;
+}
+
+.gestion-titulo {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.gestion-ayuda {
+  color: var(--gray-text);
+  font-size: 0.92rem;
+}
+
+.gestion-acciones {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

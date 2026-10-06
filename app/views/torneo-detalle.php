@@ -15,6 +15,8 @@ if ($torneo && $torneo['estado'] === 'borrador' && !$modelo->esOrganizador($id, 
     $torneo = null;
 }
 
+$es_organizador = $torneo && $modelo->esOrganizador($id, $usuario_id);
+
 if (!$torneo) {
     http_response_code(404);
 } else {
@@ -33,6 +35,15 @@ if (!$torneo) {
         'finalizado' => 'Este torneo no tiene rondas registradas.',
     ];
     $mensaje_sin_rondas = $mensajes[$torneo['estado']];
+
+    // Qué puede hacer el organizador en cada etapa
+    $ayudas = [
+        'borrador' => 'Solo vos ves este torneo. Revisá los datos y publicalo para abrir la inscripción.',
+        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte y el tipo ya no se pueden cambiar.',
+        'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar.',
+        'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
+    ];
+    $ayuda_gestion = $ayudas[$torneo['estado']];
 
     if ($torneo['tipo'] === 'eliminacion') {
         // Llave completa: las rondas ya generadas y, para las que faltan, cruces "Por definir".
@@ -88,8 +99,8 @@ if (!$torneo) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/torneos.css?v=2" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=4" />
 </head>
 <body>
 
@@ -147,6 +158,46 @@ if (!$torneo) {
     </section>
 
     <?php if ($torneo): ?>
+
+      <?php if ($es_organizador): ?>
+        <!-- ===== Panel de gestión: solo lo ve un organizador del torneo (RF-07) ===== -->
+        <section class="gestion-section">
+          <div class="container">
+            <div class="gestion-panel">
+              <h2 class="gestion-titulo">Gestionar torneo</h2>
+
+              <?php if (isset($_SESSION['error'])): ?>
+                <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
+              <?php endif; ?>
+              <?php if (isset($_SESSION['exito'])): ?>
+                <p style="color:green; margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
+              <?php endif; ?>
+
+              <p class="gestion-ayuda"><?= $ayuda_gestion ?></p>
+
+              <?php if (Torneo::sePuedeEditar($torneo)): ?>
+                <div class="gestion-acciones">
+                  <a href="/tornea/app/views/editar-torneo.php?id=<?= $id ?>" class="btn btn-outline">Editar datos</a>
+
+                  <?php if ($torneo['estado'] === 'borrador'): ?>
+                    <form action="/tornea/app/controllers/TorneoController.php?accion=publicar" method="post">
+                      <input type="hidden" name="id" value="<?= $id ?>" />
+                      <input type="hidden" name="volver" value="detalle" />
+                      <button type="submit" class="btn btn-gradient">Publicar</button>
+                    </form>
+                    <form action="/tornea/app/controllers/TorneoController.php?accion=eliminar" method="post"
+                          onsubmit="return confirm('¿Estás seguro de que querés eliminar este torneo? Esta acción no se puede deshacer.');">
+                      <input type="hidden" name="id" value="<?= $id ?>" />
+                      <input type="hidden" name="volver" value="detalle" />
+                      <button type="submit" class="btn btn-peligro">Eliminar</button>
+                    </form>
+                  <?php endif; ?>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </section>
+      <?php endif; ?>
 
       <?php if ($torneo['tipo'] === 'eliminacion'): ?>
         <!-- ===== Eliminación directa: llaves ===== -->

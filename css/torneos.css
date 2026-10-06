@@ -155,7 +155,15 @@
   background: rgba(30, 58, 95, 0.1);
 }
 
-/* "Publicar" y "Eliminar" ocupan el lugar del botón "Ver detalle" en los borradores */
+/* En los borradores: "Ver y editar" arriba y "Publicar" / "Eliminar" abajo */
+.torneo-card-ver {
+  margin-bottom: 10px;
+}
+
+.torneo-card-ver + .torneo-card-acciones {
+  margin-top: 0;
+}
+
 .torneo-card-acciones {
   margin-top: auto;
   display: flex;

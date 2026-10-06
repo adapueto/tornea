@@ -6,7 +6,11 @@ class Torneo {
     private $pdo;
 
     const TIPOS = ['liga', 'eliminacion', 'suizo'];
-    const DEPORTES = ['Fútbol', 'Básquet', 'eSports', 'Ajedrez', 'Pádel', 'Vóley', 'Otro'];
+    // Misma lista que usa database/tools/generar_seed.py para los datos de prueba
+    const DEPORTES = [
+        'Fútbol 5', 'Fútbol 11', 'Básquet', 'Vóley', 'Handball', 'Ajedrez', 'Tenis', 'Pádel',
+        'Ping Pong', 'eSports - FIFA', 'eSports - Rocket League', 'eSports - League of Legends', 'Otro',
+    ];
 
     public function __construct() {
         $this->pdo = conectar();
@@ -52,8 +56,10 @@ class Torneo {
         return $this->pdo->query('SELECT CURDATE()')->fetchColumn();
     }
 
-    // Devuelve un array con los errores encontrados (vacío si todo está bien)
-    public function validar($datos) {
+    // Devuelve un array con los errores encontrados (vacío si todo está bien).
+    // Con $validar_formato = false no se revisan deporte y tipo (torneo publicado:
+    // esos datos no se pueden cambiar y vienen de la base).
+    public function validar($datos, $validar_formato = true) {
         $errores = [];
 
         if (trim($datos['nombre']) === '') {
@@ -62,11 +68,11 @@ class Torneo {
             $errores[] = 'El nombre no puede tener más de 150 caracteres';
         }
 
-        if (!in_array($datos['deporte'], self::DEPORTES, true)) {
+        if ($validar_formato && !in_array($datos['deporte'], self::DEPORTES, true)) {
             $errores[] = 'Seleccioná un deporte válido';
         }
 
-        if (!in_array($datos['tipo'], self::TIPOS, true)) {
+        if ($validar_formato && !in_array($datos['tipo'], self::TIPOS, true)) {
             $errores[] = 'Seleccioná un tipo de torneo válido';
         }
 
@@ -134,6 +140,75 @@ class Torneo {
         }
 
         return ['exito' => true, 'mensaje' => 'Torneo creado correctamente', 'id' => $torneo_id];
+    }
+
+    // Qué se puede editar según el estado: todo en borrador; en publicado solo
+    // nombre, descripción y fechas (la gente ya se anotó con ese deporte y tipo);
+    // en curso o finalizado, nada.
+    public static function sePuedeEditar($torneo) {
+        return in_array($torneo['estado'], ['borrador', 'publicado'], true);
+    }
+
+    public static function formatoBloqueado($torneo) {
+        return $torneo['estado'] !== 'borrador';
+    }
+
+    // Modifica un torneo (RF-19, RF-21). Solo puede hacerlo un organizador.
+    public function actualizar($torneo_id, $datos, $usuario_id) {
+        if (!$this->esOrganizador($torneo_id, $usuario_id)) {
+            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo puede modificarlo'];
+        }
+
+        $torneo = $this->buscarPorId($torneo_id);
+        if (!self::sePuedeEditar($torneo)) {
+            return ['exito' => false, 'mensaje' => 'Un torneo en curso o finalizado ya no se puede modificar'];
+        }
+
+        // En un torneo publicado se ignora lo que llegue de deporte y tipo
+        $bloqueado = self::formatoBloqueado($torneo);
+        if ($bloqueado) {
+            $datos['deporte'] = $torneo['deporte'];
+            $datos['tipo'] = $torneo['tipo'];
+        }
+
+        $errores = $this->validar($datos, !$bloqueado);
+        if ($errores) {
+            return ['exito' => false, 'mensaje' => implode('. ', $errores)];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare('
+                UPDATE torneos
+                SET nombre = ?, descripcion = ?, deporte = ?, tipo = ?, fecha_inicio = ?, fecha_fin = ?
+                WHERE id = ?
+            ');
+            $stmt->execute([
+                trim($datos['nombre']),
+                trim($datos['descripcion']),
+                $datos['deporte'],
+                $datos['tipo'],
+                $datos['fecha_inicio'],
+                $datos['fecha_fin'],
+                $torneo_id,
+            ]);
+
+            $stmt = $this->pdo->prepare("
+                INSERT INTO auditoria (usuario_id, accion, tabla_afectada, registro_id)
+                VALUES (?, 'UPDATE', 'torneos', ?)
+            ");
+            $stmt->execute([$usuario_id, $torneo_id]);
+
+            $this->pdo->commit();
+        } catch (PDOException $e) {
+            $this->pdo->rollBack();
+            return ['exito' => false, 'mensaje' => 'No se pudieron guardar los cambios, intentá de nuevo'];
+        }
+
+        // Si era publicado y se movió la fecha de inicio a hoy, pasa a "en curso"
+        $this->actualizarEstadosPorFecha();
+
+        return ['exito' => true, 'mensaje' => 'Cambios guardados'];
     }
 
     // Torneos visibles para cualquiera (RF-48): todo menos los borradores.

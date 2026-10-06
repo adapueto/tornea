@@ -28,7 +28,7 @@ $hoy = (new Torneo())->fechaHoy();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/auth.css" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=2" />
 </head>
 <body>
 
@@ -71,51 +71,11 @@ $hoy = (new Torneo())->fechaHoy();
           <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
         <?php endif; ?>
 
-        <form class="auth-form" action="/tornea/app/controllers/TorneoController.php?accion=crear" method="post">
-          <div class="form-group">
-            <label for="nombre">Nombre del torneo</label>
-            <input type="text" id="nombre" name="nombre" maxlength="150" placeholder="Ej: Liga Amateur de Fútbol 5" value="<?= e($form['nombre'] ?? '') ?>" required />
-          </div>
-
-          <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" placeholder="Contá de qué se trata el torneo..."><?= e($form['descripcion'] ?? '') ?></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="deporte">Deporte</label>
-            <select id="deporte" name="deporte" required>
-              <option value="" disabled <?= empty($form['deporte']) ? 'selected' : '' ?>>Seleccioná un deporte</option>
-              <?php foreach (Torneo::DEPORTES as $deporte): ?>
-                <option value="<?= e($deporte) ?>" <?= ($form['deporte'] ?? '') === $deporte ? 'selected' : '' ?>><?= e($deporte) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="tipo">Tipo de torneo</label>
-            <select id="tipo" name="tipo" required>
-              <option value="" disabled <?= empty($form['tipo']) ? 'selected' : '' ?>>Seleccioná un tipo</option>
-              <?php foreach (['liga' => 'Liga', 'eliminacion' => 'Eliminación directa', 'suizo' => 'Sistema suizo'] as $valor => $texto): ?>
-                <option value="<?= $valor ?>" <?= ($form['tipo'] ?? '') === $valor ? 'selected' : '' ?>><?= $texto ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label for="fecha_inicio">Fecha de inicio</label>
-              <input type="date" id="fecha_inicio" name="fecha_inicio" min="<?= $hoy ?>" value="<?= e($form['fecha_inicio'] ?? '') ?>" required />
-            </div>
-
-            <div class="form-group">
-              <label for="fecha_fin">Fecha de finalización</label>
-              <input type="date" id="fecha_fin" name="fecha_fin" min="<?= $hoy ?>" value="<?= e($form['fecha_fin'] ?? '') ?>" required />
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-gradient btn-lg btn-block">CREAR TORNEO</button>
-        </form>
+        <?php
+          $accion_form = '/tornea/app/controllers/TorneoController.php?accion=crear';
+          $texto_boton = 'CREAR TORNEO';
+          include __DIR__ . '/partials/form-torneo.php';
+        ?>
       </div>
     </section>
   </main>

@@ -12,6 +12,7 @@
   <p class="torneo-fechas"><?= formatearFechas($t['fecha_inicio'], $t['fecha_fin']) ?></p>
 
   <?php if (!empty($mostrar_publicar) && $t['estado'] === 'borrador'): ?>
+    <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $t['id'] ?>" class="btn btn-outline btn-block torneo-card-ver">Ver y editar</a>
     <div class="torneo-card-acciones">
       <form action="/tornea/app/controllers/TorneoController.php?accion=publicar" method="post">
         <input type="hidden" name="id" value="<?= (int) $t['id'] ?>" />

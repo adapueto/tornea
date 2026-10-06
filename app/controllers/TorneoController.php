@@ -15,6 +15,15 @@ if (!isset($_SESSION['usuario'])) {
 
 $torneo = new Torneo();
 
+// A dónde volver después de publicar o eliminar: al detalle si la acción
+// se hizo desde el panel de gestión, si no al perfil ("Mis torneos")
+function urlVolver($id) {
+    if (($_POST['volver'] ?? '') === 'detalle') {
+        return '/tornea/app/views/torneo-detalle.php?id=' . (int) $id;
+    }
+    return '/tornea/app/views/perfil.php';
+}
+
 if ($accion === 'crear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $datos = [
         'nombre' => $_POST['nombre'] ?? '',
@@ -46,7 +55,31 @@ if ($accion === 'publicar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $resultado = $torneo->publicar($id, $_SESSION['usuario']['id']);
 
     $_SESSION[$resultado['exito'] ? 'exito' : 'error'] = $resultado['mensaje'];
-    header('Location: /tornea/app/views/perfil.php');
+    header('Location: ' . urlVolver($id));
+    exit;
+}
+
+if ($accion === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = (int) ($_POST['id'] ?? 0);
+    $datos = [
+        'nombre' => $_POST['nombre'] ?? '',
+        'descripcion' => $_POST['descripcion'] ?? '',
+        'deporte' => $_POST['deporte'] ?? '',
+        'tipo' => $_POST['tipo'] ?? '',
+        'fecha_inicio' => $_POST['fecha_inicio'] ?? '',
+        'fecha_fin' => $_POST['fecha_fin'] ?? '',
+    ];
+
+    $resultado = $torneo->actualizar($id, $datos, $_SESSION['usuario']['id']);
+
+    if ($resultado['exito']) {
+        $_SESSION['exito'] = $resultado['mensaje'];
+        header('Location: /tornea/app/views/torneo-detalle.php?id=' . $id);
+    } else {
+        $_SESSION['error'] = $resultado['mensaje'];
+        $_SESSION['form_torneo'] = $datos;
+        header('Location: /tornea/app/views/editar-torneo.php?id=' . $id);
+    }
     exit;
 }
 
@@ -56,7 +89,8 @@ if ($accion === 'eliminar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $resultado = $torneo->eliminar($id, $_SESSION['usuario']['id']);
 
     $_SESSION[$resultado['exito'] ? 'exito' : 'error'] = $resultado['mensaje'];
-    header('Location: /tornea/app/views/perfil.php');
+    // Si se eliminó, el detalle ya no existe: se vuelve al perfil
+    header('Location: ' . ($resultado['exito'] ? '/tornea/app/views/perfil.php' : urlVolver($id)));
     exit;
 }
 
