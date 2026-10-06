@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../models/torneo.php';
 require_once __DIR__ . '/../models/participante.php';
+require_once __DIR__ . '/../models/equipo.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
 // Detalle de un torneo: una sola vista para los tres tipos (liga, eliminación y suizo)
@@ -65,7 +66,17 @@ if (!$torneo) {
     $motivo_no_inscribir = $usuario_id && !$mi_inscripcion
         ? $modeloParticipante->motivoNoPuedeInscribirse($torneo, $usuario_id)
         : null;
-    $mostrar_inscripcion = !$es_organizador && ($torneo['estado'] === 'publicado' || $mi_inscripcion);
+    // Torneo por equipos: se inscribe un equipo, que arma su líder (RF-13)
+    $mi_equipo = false;
+    $motivo_no_equipo = null;
+    if ($torneo['modalidad'] === 'equipo' && $usuario_id) {
+        $modeloEquipo = new Equipo();
+        $equipo_en_torneo = $modeloEquipo->equipoEnTorneo($id, $usuario_id);
+        $mi_equipo = $equipo_en_torneo ? $modeloEquipo->buscarPorId($equipo_en_torneo['id']) : false;
+        $motivo_no_equipo = $mi_equipo ? null : $modeloEquipo->motivoNoPuedeCrear($torneo, $usuario_id);
+    }
+
+    $mostrar_inscripcion = !$es_organizador && ($torneo['estado'] === 'publicado' || $mi_inscripcion || $mi_equipo);
 
     // Lo que ve quien gestiona: las inscripciones a revisar
     if ($puede_gestionar && $torneo['estado'] === 'publicado') {
@@ -128,32 +139,13 @@ if (!$torneo) {
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=6" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=7" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/equipos.css?v=1" />
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="/tornea/index.php" class="logo">
-        <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
-      </a>
-
-      <nav class="main-nav">
-        <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
-        <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
-            <?= $_SESSION['usuario']['nombre'] ?>
-          </a>
-          <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
-        <?php else: ?>
-          <a href="/tornea/app/views/login.php" class="btn btn-outline">Iniciar Sesión</a>
-          <a href="/tornea/app/views/register.php" class="btn btn-gradient">Registrarse</a>
-        <?php endif; ?>
-      </nav>
-    </div>
-  </header>
+  <?php $pagina_actual = 'torneos'; include __DIR__ . '/partials/header.php'; ?>
 
   <main>
     <section class="torneo-detalle-hero">
@@ -208,6 +200,31 @@ if (!$torneo) {
               <?php if (!$usuario_id): ?>
                 <p class="gestion-ayuda">La inscripción está abierta.
                   <a href="/tornea/app/views/login.php" class="form-link form-link-strong">Iniciá sesión</a> para anotarte.</p>
+
+              <?php elseif ($torneo['modalidad'] === 'equipo'): ?>
+                <?php if ($mi_equipo): ?>
+                  <p class="gestion-ayuda">
+                    <?php if ($mi_equipo['estado_inscripcion']): ?>
+                      <span class="inscripcion-estado inscripcion-<?= e($mi_equipo['estado_inscripcion']) ?>"><?= ucfirst(e($mi_equipo['estado_inscripcion'])) ?></span>
+                    <?php endif; ?>
+                    Estás en el equipo <strong><?= e($mi_equipo['nombre']) ?></strong>.
+                  </p>
+                  <div class="gestion-acciones">
+                    <a href="/tornea/app/views/equipo.php?id=<?= (int) $mi_equipo['id'] ?>" class="btn btn-outline">Ver mi equipo</a>
+                  </div>
+                <?php elseif ($motivo_no_equipo): ?>
+                  <p class="gestion-ayuda"><?= e($motivo_no_equipo) ?></p>
+                <?php else: ?>
+                  <p class="gestion-ayuda">Este torneo es por equipos. Creá tu equipo: vas a ser el líder y después invitás a tus compañeros por email. El organizador aprueba la inscripción.</p>
+                  <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=crear" method="post">
+                    <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                    <div class="form-group">
+                      <label for="nombre-equipo">Nombre del equipo</label>
+                      <input type="text" id="nombre-equipo" name="nombre" maxlength="150" placeholder="Ej: Los Halcones" required />
+                    </div>
+                    <button type="submit" class="btn btn-gradient">Inscribir mi equipo</button>
+                  </form>
+                <?php endif; ?>
 
               <?php elseif ($mi_inscripcion): ?>
                 <?php
@@ -294,7 +311,10 @@ if (!$torneo) {
                         <li class="inscripcion-item">
                           <div class="inscripcion-info">
                             <span class="participante-nombre"><?= e($p['nombre']) ?></span>
-                            <span class="participante-extra">Se anotó el <?= date('d/m/Y', strtotime($p['created_at'])) ?></span>
+                            <span class="participante-extra">
+                              <?php if ($p['miembros'] !== null): ?><?= (int) $p['miembros'] ?> integrantes · <?php endif; ?>
+                              Se anotó el <?= date('d/m/Y', strtotime($p['created_at'])) ?>
+                            </span>
                           </div>
                           <div class="inscripcion-botones">
                             <form action="/tornea/app/controllers/InscripcionController.php?accion=aprobar" method="post">

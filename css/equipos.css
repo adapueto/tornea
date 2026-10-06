@@ -1,0 +1,27 @@
+/* ===== Equipos: "Mis equipos" y página de un equipo ===== */
+
+/* Los paneles de la página del equipo, uno abajo del otro */
+.equipo-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 80px;
+}
+
+.invitaciones-panel {
+  border-top-color: var(--green);
+}
+
+/* Formularios cortos (invitar, renombrar) dentro de un panel */
+.equipo-form {
+  margin-top: 14px;
+  max-width: 420px;
+}
+
+.equipo-subtitulo {
+  margin-top: 24px;
+}
+
+.equipos-lista .participante-item {
+  align-items: flex-start;
+}

@@ -249,3 +249,8 @@
   color: var(--gray-text);
   background: var(--bg-light);
 }
+
+/* "Mis equipos" debajo de "Editar perfil" */
+.perfil-card .perfil-btn-equipos {
+  margin-top: 12px;
+}

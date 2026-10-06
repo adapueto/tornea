@@ -20,28 +20,7 @@ $torneos = (new Torneo())->listarPublicos();
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="/tornea/index.php" class="logo">
-        <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
-      </a>
-
-      <nav class="main-nav">
-        <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
-        <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
-            <?= $_SESSION['usuario']['nombre'] ?>
-          </a>
-          <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
-        <?php else: ?>
-          <a href="/tornea/app/views/login.php" class="btn btn-outline">Iniciar Sesión</a>
-          <a href="/tornea/app/views/register.php" class="btn btn-gradient">Registrarse</a>
-        <?php endif; ?>
-      </nav>
-    </div>
-  </header>
+  <?php $pagina_actual = 'torneos'; include __DIR__ . '/partials/header.php'; ?>
 
   <main>
     <section class="torneos-hero">

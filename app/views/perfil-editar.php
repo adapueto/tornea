@@ -18,31 +18,11 @@ $usuario = $_SESSION['usuario'];
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/auth.css" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="/tornea/index.php" class="logo">
-        <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
-      </a>
-      <nav class="main-nav">
-        <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
-        <?php if (isset($_SESSION['usuario'])): ?>
-          <a href="/tornea/app/views/perfil.php" class="btn btn-outline">
-            <?= $_SESSION['usuario']['nombre'] ?>
-          </a>
-          <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
-        <?php else: ?>
-          <a href="/tornea/app/views/login.php" class="btn btn-outline">Iniciar Sesión</a>
-          <a href="/tornea/app/views/register.php" class="btn btn-gradient">Registrarse</a>
-        <?php endif; ?>
-      </nav>
-    </div>
-  </header>
+  <?php $pagina_actual = 'perfil'; include __DIR__ . '/partials/header.php'; ?>
 
   <main>
     <section class="auth-section">

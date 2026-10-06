@@ -1,6 +1,7 @@
 /* ===== Auth pages (login / registro / crear torneo) ===== */
 
-.nav-active {
+/* Solo los botones del menú (Iniciar sesión / Registrarse); los links de texto usan .nav-link.nav-active */
+.btn.nav-active {
   background: var(--navy);
   color: var(--white);
   border-color: var(--navy);

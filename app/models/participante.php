@@ -27,7 +27,7 @@ class Participante {
             return 'La inscripción solo está abierta mientras el torneo está publicado y todavía no empezó.';
         }
         if ($torneo['modalidad'] !== 'individual') {
-            return 'Este torneo es por equipos: la inscripción de equipos todavía no está disponible.';
+            return 'Este torneo es por equipos: para jugarlo, inscribí un equipo.';
         }
         if ($this->torneos->esOrganizador($torneo['id'], $usuario_id)) {
             return 'No te podés inscribir en un torneo que organizás.';
@@ -159,7 +159,11 @@ class Participante {
     public function listarPorEstado($torneo_id, $estado) {
         $stmt = $this->pdo->prepare("
             SELECT p.id, p.created_at,
-                   COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)) AS nombre
+                   COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)) AS nombre,
+                   -- En equipos, cuántos integrantes tiene (NULL si es individual)
+                   CASE WHEN p.equipo_id IS NULL THEN NULL
+                        ELSE (SELECT COUNT(*) FROM equipo_miembros m WHERE m.equipo_id = p.equipo_id)
+                   END AS miembros
             FROM participantes p
             LEFT JOIN usuarios u ON u.id = p.usuario_id
             LEFT JOIN equipos e ON e.id = p.equipo_id
