@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../models/participante.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
 // Detalle de un torneo: una sola vista para los tres tipos (liga, eliminación y suizo)
@@ -54,6 +55,23 @@ if (!$torneo) {
         'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
     ];
     $ayuda_gestion = $ayudas[$torneo['estado']];
+
+    // ===== Inscripción (RF-12) =====
+    $modeloParticipante = new Participante();
+    $es_organizador = $modelo->esOrganizador($id, $usuario_id);
+
+    // Lo que ve quien quiere anotarse (no se muestra a los organizadores del torneo)
+    $mi_inscripcion = $usuario_id ? $modeloParticipante->buscarInscripcion($id, $usuario_id) : false;
+    $motivo_no_inscribir = $usuario_id && !$mi_inscripcion
+        ? $modeloParticipante->motivoNoPuedeInscribirse($torneo, $usuario_id)
+        : null;
+    $mostrar_inscripcion = !$es_organizador && ($torneo['estado'] === 'publicado' || $mi_inscripcion);
+
+    // Lo que ve quien gestiona: las inscripciones a revisar
+    if ($puede_gestionar && $torneo['estado'] === 'publicado') {
+        $pendientes = $modeloParticipante->listarPorEstado($id, 'pendiente');
+        $conteo = $modeloParticipante->contarPorEstado($id);
+    }
 
     if ($torneo['tipo'] === 'eliminacion') {
         // Llave completa: las rondas ya generadas y, para las que faltan, cruces "Por definir".
@@ -110,7 +128,7 @@ if (!$torneo) {
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=5" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=6" />
 </head>
 <body>
 
@@ -169,19 +187,73 @@ if (!$torneo) {
 
     <?php if ($torneo): ?>
 
+      <?php if (isset($_SESSION['error']) || isset($_SESSION['exito'])): ?>
+        <div class="container detalle-mensajes">
+          <?php if (isset($_SESSION['error'])): ?>
+            <p class="mensaje mensaje-error"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
+          <?php endif; ?>
+          <?php if (isset($_SESSION['exito'])): ?>
+            <p class="mensaje mensaje-exito"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ($mostrar_inscripcion): ?>
+        <!-- ===== Inscripción del participante ===== -->
+        <section class="gestion-section">
+          <div class="container">
+            <div class="gestion-panel inscripcion-panel">
+              <h2 class="gestion-titulo">Inscripción</h2>
+
+              <?php if (!$usuario_id): ?>
+                <p class="gestion-ayuda">La inscripción está abierta.
+                  <a href="/tornea/app/views/login.php" class="form-link form-link-strong">Iniciá sesión</a> para anotarte.</p>
+
+              <?php elseif ($mi_inscripcion): ?>
+                <?php
+                  $textos = [
+                      'pendiente' => 'Estás anotado. Tu inscripción está pendiente hasta que el organizador la revise.',
+                      'aprobado' => 'Tu inscripción fue aprobada: estás participando en este torneo.',
+                      'rechazado' => 'El organizador rechazó tu inscripción.',
+                  ];
+                ?>
+                <p class="gestion-ayuda">
+                  <span class="inscripcion-estado inscripcion-<?= e($mi_inscripcion['estado']) ?>"><?= ucfirst(e($mi_inscripcion['estado'])) ?></span>
+                  <?= $textos[$mi_inscripcion['estado']] ?>
+                </p>
+                <?php if ($torneo['estado'] === 'publicado' && $mi_inscripcion['estado'] !== 'rechazado'): ?>
+                  <div class="gestion-acciones">
+                    <form action="/tornea/app/controllers/InscripcionController.php?accion=cancelar" method="post"
+                          onsubmit="return confirm('¿Seguro que querés cancelar tu inscripción?');">
+                      <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                      <button type="submit" class="btn btn-peligro">Cancelar inscripción</button>
+                    </form>
+                  </div>
+                <?php endif; ?>
+
+              <?php elseif ($motivo_no_inscribir): ?>
+                <p class="gestion-ayuda"><?= e($motivo_no_inscribir) ?></p>
+
+              <?php else: ?>
+                <p class="gestion-ayuda">La inscripción está abierta. Cuando te anotes, el organizador tiene que aprobarte.</p>
+                <div class="gestion-acciones">
+                  <form action="/tornea/app/controllers/InscripcionController.php?accion=inscribirse" method="post">
+                    <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                    <button type="submit" class="btn btn-gradient">Inscribirme</button>
+                  </form>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </section>
+      <?php endif; ?>
+
       <?php if ($puede_gestionar): ?>
         <!-- ===== Panel de gestión: solo lo ven sus organizadores y los administradores (RF-07) ===== -->
         <section class="gestion-section">
           <div class="container">
             <div class="gestion-panel">
               <h2 class="gestion-titulo">Gestionar torneo</h2>
-
-              <?php if (isset($_SESSION['error'])): ?>
-                <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
-              <?php endif; ?>
-              <?php if (isset($_SESSION['exito'])): ?>
-                <p style="color:green; margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
-              <?php endif; ?>
 
               <?php if ($gestiona_como_admin): ?>
                 <p class="gestion-admin">Estás gestionando este torneo como administrador. Los cambios quedan registrados a tu nombre.</p>
@@ -205,6 +277,41 @@ if (!$torneo) {
                       <input type="hidden" name="volver" value="detalle" />
                       <button type="submit" class="btn btn-peligro">Eliminar</button>
                     </form>
+                  <?php endif; ?>
+                </div>
+              <?php endif; ?>
+
+              <?php if ($torneo['estado'] === 'publicado'): ?>
+                <div class="gestion-inscripciones">
+                  <h3 class="gestion-subtitulo">Inscripciones</h3>
+                  <p class="gestion-ayuda">
+                    <?= $conteo['aprobado'] ?> aprobadas · <?= $conteo['pendiente'] ?> pendientes · <?= $conteo['rechazado'] ?> rechazadas
+                  </p>
+
+                  <?php if ($pendientes): ?>
+                    <ul class="inscripciones-lista">
+                      <?php foreach ($pendientes as $p): ?>
+                        <li class="inscripcion-item">
+                          <div class="inscripcion-info">
+                            <span class="participante-nombre"><?= e($p['nombre']) ?></span>
+                            <span class="participante-extra">Se anotó el <?= date('d/m/Y', strtotime($p['created_at'])) ?></span>
+                          </div>
+                          <div class="inscripcion-botones">
+                            <form action="/tornea/app/controllers/InscripcionController.php?accion=aprobar" method="post">
+                              <input type="hidden" name="participante_id" value="<?= (int) $p['id'] ?>" />
+                              <button type="submit" class="btn btn-gradient">Aprobar</button>
+                            </form>
+                            <form action="/tornea/app/controllers/InscripcionController.php?accion=rechazar" method="post"
+                                  onsubmit="return confirm('¿Rechazar la inscripción de <?= e(addslashes($p['nombre'])) ?>?');">
+                              <input type="hidden" name="participante_id" value="<?= (int) $p['id'] ?>" />
+                              <button type="submit" class="btn btn-peligro">Rechazar</button>
+                            </form>
+                          </div>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php else: ?>
+                    <p class="gestion-ayuda">No hay inscripciones pendientes de revisar.</p>
                   <?php endif; ?>
                 </div>
               <?php endif; ?>

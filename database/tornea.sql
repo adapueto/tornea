@@ -103,7 +103,11 @@ CREATE TABLE participantes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (torneo_id) REFERENCES torneos(id) ON DELETE CASCADE,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL,
-  FOREIGN KEY (equipo_id) REFERENCES equipos(id) ON DELETE SET NULL
+  FOREIGN KEY (equipo_id) REFERENCES equipos(id) ON DELETE SET NULL,
+  -- Una persona o un equipo se inscribe una sola vez por torneo
+  -- (los NULL no cuentan como repetidos, así conviven inscripciones individuales y por equipo)
+  UNIQUE KEY uq_participante_usuario (torneo_id, usuario_id),
+  UNIQUE KEY uq_participante_equipo (torneo_id, equipo_id)
 );
 
 -- =============================================
