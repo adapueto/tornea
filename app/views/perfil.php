@@ -24,7 +24,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/perfil.css?v=4" />
 </head>
@@ -69,7 +69,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
 
           <a href="/tornea/app/views/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
           <?php // En celular el menú oculta los links de texto: acceso directo a los equipos ?>
-          <a href="/tornea/app/views/equipos.php" class="btn btn-outline btn-lg btn-block perfil-btn-equipos">MIS EQUIPOS</a>
+          <a href="/tornea/app/views/equipos.php" class="btn btn-outline btn-lg btn-block perfil-btn-equipos">MIS EQUIPOS<?php if ($invitaciones_pendientes): ?> (<?= $invitaciones_pendientes ?>)<?php endif; ?></a>
         </div>
 
         <div class="perfil-torneos">

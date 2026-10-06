@@ -21,18 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $equipo = new Equipo();
 $usuario_id = $_SESSION['usuario']['id'];
 $equipo_id = (int) ($_POST['equipo_id'] ?? 0);
+$torneo_id = (int) ($_POST['torneo_id'] ?? 0);
 
 $url_equipo = '/tornea/app/views/equipo.php?id=' . $equipo_id;
+$url_torneo = '/tornea/app/views/torneo-detalle.php?id=' . $torneo_id;
 $url_mis_equipos = '/tornea/app/views/equipos.php';
+// Algunas acciones se hacen desde el detalle del torneo o desde la página del equipo
+$volver = ($_POST['volver'] ?? '') === 'torneo' ? $url_torneo : $url_equipo;
 
 switch ($accion) {
-    // Crear el equipo desde el detalle del torneo (queda inscripto como pendiente)
+    // Crear un equipo desde "Mis equipos" (queda sin inscribir en ningún torneo)
     case 'crear':
-        $torneo_id = (int) ($_POST['torneo_id'] ?? 0);
-        $resultado = $equipo->crear($torneo_id, $_POST['nombre'] ?? '', $usuario_id);
-        $destino = $resultado['exito']
-            ? '/tornea/app/views/equipo.php?id=' . $resultado['equipo_id']
-            : '/tornea/app/views/torneo-detalle.php?id=' . $torneo_id;
+        $resultado = $equipo->crear($_POST['nombre'] ?? '', $usuario_id);
+        $destino = $resultado['exito'] ? '/tornea/app/views/equipo.php?id=' . $resultado['equipo_id'] : $url_mis_equipos;
         break;
 
     case 'renombrar':
@@ -43,6 +44,17 @@ switch ($accion) {
     case 'baja':
         $resultado = $equipo->darDeBaja($equipo_id, $usuario_id);
         $destino = $resultado['exito'] ? $url_mis_equipos : $url_equipo;
+        break;
+
+    // El líder anota al equipo en un torneo por equipos (desde el detalle del torneo)
+    case 'inscribir':
+        $resultado = $equipo->inscribir($equipo_id, $torneo_id, $usuario_id);
+        $destino = $url_torneo;
+        break;
+
+    case 'cancelar_inscripcion':
+        $resultado = $equipo->cancelarInscripcion($equipo_id, $torneo_id, $usuario_id);
+        $destino = $volver;
         break;
 
     case 'invitar':

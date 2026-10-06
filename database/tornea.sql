@@ -62,12 +62,13 @@ CREATE TABLE torneo_organizadores (
 -- Equipos
 -- =============================================
 
+-- Los equipos son permanentes: se arman una vez y se inscriben en varios
+-- torneos (cada inscripción es una fila de participantes con equipo_id)
 CREATE TABLE equipos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(150) NOT NULL,
-  torneo_id INT NOT NULL,
   lider_id INT NOT NULL,
-  FOREIGN KEY (torneo_id) REFERENCES torneos(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (lider_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 

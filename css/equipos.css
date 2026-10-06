@@ -25,3 +25,14 @@
 .equipos-lista .participante-item {
   align-items: flex-start;
 }
+
+/* Equipos que el líder no puede inscribir en un torneo, con el motivo */
+.equipos-bloqueados {
+  list-style: none;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--gray-text);
+}

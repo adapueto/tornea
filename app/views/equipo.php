@@ -3,8 +3,9 @@ session_start();
 require_once __DIR__ . '/../models/equipo.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
-// Página de un equipo: miembros, invitaciones y acciones del líder (RF-13 a RF-17).
-// La ven los miembros del equipo y quienes gestionan el torneo.
+// Página de un equipo: integrantes, torneos en los que está inscripto, invitaciones
+// y acciones del líder (RF-13 a RF-17). La ven sus integrantes, los administradores
+// y los organizadores de los torneos en los que juega.
 
 if (!isset($_SESSION['usuario'])) {
     $_SESSION['error'] = 'Tenés que iniciar sesión para ver un equipo';
@@ -24,9 +25,9 @@ if (!$equipo || !$modelo->puedeVer($equipo, $usuario_id)) {
 
 $equipo_id = (int) $equipo['id'];
 $miembros = $modelo->listarMiembros($equipo_id);
-$es_lider = (int) $equipo['lider_id'] === (int) $usuario_id;
+$inscripciones = $modelo->listarInscripciones($equipo_id);
+$es_lider = Equipo::esLider($equipo, $usuario_id);
 $es_miembro = $modelo->esMiembro($equipo_id, $usuario_id);
-$modificable = Equipo::esModificable($equipo);
 $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : [];
 ?>
 <!DOCTYPE html>
@@ -38,11 +39,11 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=7" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/equipos.css?v=1" />
+  <link rel="stylesheet" href="/tornea/css/equipos.css?v=2" />
 </head>
 <body>
 
@@ -53,30 +54,13 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
       <div class="container">
         <a href="/tornea/app/views/equipos.php" class="volver-link">← Mis equipos</a>
 
-        <div class="torneo-detalle-top">
-          <span class="torneo-badge"><?= iconoDeporte($equipo['deporte']) ?> Equipo</span>
-          <?php if ($equipo['estado_inscripcion']): ?>
-            <span class="inscripcion-estado inscripcion-<?= e($equipo['estado_inscripcion']) ?>">Inscripción <?= e($equipo['estado_inscripcion']) ?></span>
-          <?php endif; ?>
-        </div>
-
         <h1 class="torneo-detalle-nombre"><?= e($equipo['nombre']) ?></h1>
 
         <ul class="torneo-detalle-datos">
-          <li><strong>Torneo:</strong>
-            <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $equipo['torneo_id'] ?>" class="form-link"><?= e($equipo['torneo_nombre']) ?></a>
-            (<?= etiquetaEstado($equipo['torneo_estado']) ?>)</li>
           <li><strong>Líder:</strong> <?= e($equipo['lider_nombre']) ?></li>
           <li><strong>Integrantes:</strong> <?= count($miembros) ?></li>
+          <li><strong>Torneos:</strong> <?= count($inscripciones) ?></li>
         </ul>
-
-        <?php if (!$modificable): ?>
-          <p class="torneo-detalle-descripcion">
-            <?= $equipo['estado_inscripcion'] === 'rechazado'
-                ? 'El organizador rechazó la inscripción de este equipo.'
-                : 'El torneo ya empezó: el equipo quedó cerrado y no se puede modificar.' ?>
-          </p>
-        <?php endif; ?>
       </div>
     </section>
 
@@ -103,7 +87,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
                   <span class="participante-nombre"><?= e($m['nombre']) ?></span>
                   <?php if ($m['es_lider']): ?><span class="participante-extra">Líder</span><?php endif; ?>
                 </div>
-                <?php if ($es_lider && $modificable && !$m['es_lider']): ?>
+                <?php if ($es_lider && !$m['es_lider']): ?>
                   <form action="/tornea/app/controllers/EquipoController.php?accion=quitar" method="post"
                         onsubmit="return confirm('¿Sacar a <?= e(addslashes($m['nombre'])) ?> del equipo?');">
                     <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
@@ -116,15 +100,52 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
           </ul>
         </div>
 
-        <?php if ($es_lider && $modificable): ?>
+        <div class="gestion-panel">
+          <h2 class="gestion-titulo">Torneos</h2>
+          <?php if ($inscripciones): ?>
+            <ul class="inscripciones-lista">
+              <?php foreach ($inscripciones as $ins): ?>
+                <li class="inscripcion-item">
+                  <div class="inscripcion-info">
+                    <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $ins['torneo_id'] ?>" class="participante-nombre"><?= e($ins['torneo_nombre']) ?></a>
+                    <span class="participante-extra">
+                      <?= etiquetaEstado($ins['torneo_estado']) ?> · <?= formatearFechas($ins['fecha_inicio'], $ins['fecha_fin']) ?>
+                    </span>
+                  </div>
+                  <div class="inscripcion-botones">
+                    <span class="inscripcion-estado inscripcion-<?= e($ins['estado_inscripcion']) ?>"><?= ucfirst(e($ins['estado_inscripcion'])) ?></span>
+                    <?php if ($es_lider && $ins['torneo_estado'] === 'publicado'): ?>
+                      <form action="/tornea/app/controllers/EquipoController.php?accion=cancelar_inscripcion" method="post"
+                            onsubmit="return confirm('¿Sacar al equipo de este torneo?');">
+                        <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
+                        <input type="hidden" name="torneo_id" value="<?= (int) $ins['torneo_id'] ?>" />
+                        <button type="submit" class="btn btn-outline">Cancelar</button>
+                      </form>
+                    <?php endif; ?>
+                  </div>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <p class="gestion-ayuda">Todavía no está inscripto en ningún torneo.</p>
+          <?php endif; ?>
+          <?php if ($es_lider): ?>
+            <p class="gestion-ayuda equipo-subtitulo">
+              Para inscribirlo, entrá a un <a href="/tornea/app/views/torneos.php" class="form-link form-link-strong">torneo por equipos</a>
+              publicado y elegí este equipo.
+            </p>
+          <?php endif; ?>
+        </div>
+
+        <?php if ($es_lider): ?>
           <div class="gestion-panel">
-            <h2 class="gestion-titulo">Invitar compañeros</h2>
-            <p class="gestion-ayuda">Escribí el email con el que se registró en Tornea. La invitación le aparece en "Equipos".</p>
+            <h2 class="gestion-titulo">Invitar integrantes</h2>
+            <p class="gestion-ayuda">Escribí el email con el que se registró en Tornea. La invitación le aparece en "Equipos" y la acepta una sola vez.</p>
             <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=invitar" method="post">
               <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
               <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="compañero@ejemplo.com" required />
+                <input type="email" id="email" name="email" placeholder="compañera@ejemplo.com" required />
               </div>
               <button type="submit" class="btn btn-gradient">Invitar</button>
             </form>
@@ -162,11 +183,11 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
           </div>
         <?php endif; ?>
 
-        <?php if ($equipo['torneo_estado'] === 'publicado' && ($es_lider || $es_miembro)): ?>
+        <?php if ($es_lider || $es_miembro): ?>
           <div class="gestion-panel">
             <h2 class="gestion-titulo"><?= $es_lider ? 'Dar de baja el equipo' : 'Salir del equipo' ?></h2>
             <?php if ($es_lider): ?>
-              <p class="gestion-ayuda">Se borra el equipo y su inscripción en el torneo, con todos sus integrantes e invitaciones.</p>
+              <p class="gestion-ayuda">Se borra el equipo con sus integrantes, invitaciones e inscripciones en torneos que todavía no empezaron. Si el equipo ya jugó algún torneo no se puede borrar, para no perder sus resultados.</p>
               <form action="/tornea/app/controllers/EquipoController.php?accion=baja" method="post"
                     onsubmit="return confirm('¿Seguro que querés dar de baja el equipo? Esta acción no se puede deshacer.');">
                 <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />

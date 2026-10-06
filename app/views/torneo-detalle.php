@@ -66,14 +66,23 @@ if (!$torneo) {
     $motivo_no_inscribir = $usuario_id && !$mi_inscripcion
         ? $modeloParticipante->motivoNoPuedeInscribirse($torneo, $usuario_id)
         : null;
-    // Torneo por equipos: se inscribe un equipo, que arma su líder (RF-13)
-    $mi_equipo = false;
-    $motivo_no_equipo = null;
+    // Torneo por equipos: el líder de un equipo lo inscribe (RF-12, RF-13)
+    $mi_equipo = false;          // equipo del usuario que ya está inscripto en este torneo
+    $equipos_para_inscribir = []; // equipos que lidera y puede inscribir
+    $equipos_bloqueados = [];     // equipos que lidera pero no puede inscribir, con el motivo
     if ($torneo['modalidad'] === 'equipo' && $usuario_id) {
         $modeloEquipo = new Equipo();
-        $equipo_en_torneo = $modeloEquipo->equipoEnTorneo($id, $usuario_id);
-        $mi_equipo = $equipo_en_torneo ? $modeloEquipo->buscarPorId($equipo_en_torneo['id']) : false;
-        $motivo_no_equipo = $mi_equipo ? null : $modeloEquipo->motivoNoPuedeCrear($torneo, $usuario_id);
+        $mi_equipo = $modeloEquipo->equipoInscriptoDelUsuario($id, $usuario_id);
+        if (!$mi_equipo && $torneo['estado'] === 'publicado') {
+            foreach ($modeloEquipo->listarComoLider($usuario_id) as $eq) {
+                $motivo = $modeloEquipo->motivoNoPuedeInscribir($eq['id'], $torneo);
+                if ($motivo) {
+                    $equipos_bloqueados[] = ['nombre' => $eq['nombre'], 'motivo' => $motivo];
+                } else {
+                    $equipos_para_inscribir[] = $eq;
+                }
+            }
+        }
     }
 
     $mostrar_inscripcion = !$es_organizador && ($torneo['estado'] === 'publicado' || $mi_inscripcion || $mi_equipo);
@@ -137,11 +146,11 @@ if (!$torneo) {
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=7" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/equipos.css?v=1" />
+  <link rel="stylesheet" href="/tornea/css/equipos.css?v=2" />
 </head>
 <body>
 
@@ -204,26 +213,53 @@ if (!$torneo) {
               <?php elseif ($torneo['modalidad'] === 'equipo'): ?>
                 <?php if ($mi_equipo): ?>
                   <p class="gestion-ayuda">
-                    <?php if ($mi_equipo['estado_inscripcion']): ?>
-                      <span class="inscripcion-estado inscripcion-<?= e($mi_equipo['estado_inscripcion']) ?>"><?= ucfirst(e($mi_equipo['estado_inscripcion'])) ?></span>
-                    <?php endif; ?>
-                    Estás en el equipo <strong><?= e($mi_equipo['nombre']) ?></strong>.
+                    <span class="inscripcion-estado inscripcion-<?= e($mi_equipo['estado_inscripcion']) ?>"><?= ucfirst(e($mi_equipo['estado_inscripcion'])) ?></span>
+                    Jugás este torneo con el equipo <strong><?= e($mi_equipo['nombre']) ?></strong>.
                   </p>
                   <div class="gestion-acciones">
-                    <a href="/tornea/app/views/equipo.php?id=<?= (int) $mi_equipo['id'] ?>" class="btn btn-outline">Ver mi equipo</a>
+                    <a href="/tornea/app/views/equipo.php?id=<?= (int) $mi_equipo['id'] ?>" class="btn btn-outline">Ver el equipo</a>
+                    <?php if ($torneo['estado'] === 'publicado' && Equipo::esLider($mi_equipo, $usuario_id)): ?>
+                      <form action="/tornea/app/controllers/EquipoController.php?accion=cancelar_inscripcion" method="post"
+                            onsubmit="return confirm('¿Sacar al equipo de este torneo?');">
+                        <input type="hidden" name="equipo_id" value="<?= (int) $mi_equipo['id'] ?>" />
+                        <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                        <input type="hidden" name="volver" value="torneo" />
+                        <button type="submit" class="btn btn-peligro">Cancelar inscripción</button>
+                      </form>
+                    <?php endif; ?>
                   </div>
-                <?php elseif ($motivo_no_equipo): ?>
-                  <p class="gestion-ayuda"><?= e($motivo_no_equipo) ?></p>
-                <?php else: ?>
-                  <p class="gestion-ayuda">Este torneo es por equipos. Creá tu equipo: vas a ser el líder y después invitás a tus compañeros por email. El organizador aprueba la inscripción.</p>
-                  <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=crear" method="post">
+
+                <?php elseif ($equipos_para_inscribir): ?>
+                  <p class="gestion-ayuda">Elegí cuál de tus equipos querés inscribir. Sus integrantes no tienen que hacer nada; el organizador aprueba la inscripción.</p>
+                  <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=inscribir" method="post">
                     <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                     <div class="form-group">
-                      <label for="nombre-equipo">Nombre del equipo</label>
-                      <input type="text" id="nombre-equipo" name="nombre" maxlength="150" placeholder="Ej: Los Halcones" required />
+                      <label for="equipo-inscribir">Equipo</label>
+                      <select id="equipo-inscribir" name="equipo_id" required>
+                        <?php foreach ($equipos_para_inscribir as $eq): ?>
+                          <option value="<?= (int) $eq['id'] ?>"><?= e($eq['nombre']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
                     </div>
-                    <button type="submit" class="btn btn-gradient">Inscribir mi equipo</button>
+                    <button type="submit" class="btn btn-gradient">Inscribir equipo</button>
                   </form>
+
+                <?php elseif ($equipos_bloqueados): ?>
+                  <p class="gestion-ayuda">Ninguno de tus equipos se puede inscribir en este torneo:</p>
+
+                <?php else: ?>
+                  <p class="gestion-ayuda">
+                    Este torneo es por equipos. Para jugarlo, el líder de tu equipo lo inscribe.
+                    Si todavía no tenés equipo, <a href="/tornea/app/views/equipos.php" class="form-link form-link-strong">creá uno en Equipos</a>.
+                  </p>
+                <?php endif; ?>
+
+                <?php if ($equipos_bloqueados): ?>
+                  <ul class="equipos-bloqueados">
+                    <?php foreach ($equipos_bloqueados as $b): ?>
+                      <li><strong><?= e($b['nombre']) ?>:</strong> <?= e($b['motivo']) ?></li>
+                    <?php endforeach; ?>
+                  </ul>
                 <?php endif; ?>
 
               <?php elseif ($mi_inscripcion): ?>

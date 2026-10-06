@@ -109,7 +109,7 @@ docker compose down -v
 
 ### Datos de prueba
 
-`database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 120 usuarios, 60 torneos de los tres tipos y en todos los estados, equipos con invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo `roles` (son 3 por definición).
+`database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 150 usuarios, 60 torneos de los tres tipos y en todos los estados, 60 equipos permanentes (cada uno inscripto en varios torneos, sin que un jugador quede en dos equipos del mismo torneo) con sus invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo `roles` (son 3 por definición).
 
 ## Próximos pasos
 

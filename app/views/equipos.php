@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/../models/equipo.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
-// "Mis equipos": invitaciones recibidas y equipos de los que el usuario es parte (RF-17)
+// "Mis equipos": invitaciones recibidas, crear un equipo y los equipos del usuario (RF-13, RF-17)
 
 if (!isset($_SESSION['usuario'])) {
     $_SESSION['error'] = 'Tenés que iniciar sesión para ver tus equipos';
@@ -25,11 +25,11 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=7" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/equipos.css?v=1" />
+  <link rel="stylesheet" href="/tornea/css/equipos.css?v=2" />
 </head>
 <body>
 
@@ -40,7 +40,8 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
       <div class="container">
         <h1 class="torneo-detalle-nombre">Mis equipos</h1>
         <p class="torneo-detalle-descripcion">
-          Para jugar un torneo por equipos, entrá al torneo y tocá "Inscribir mi equipo". Después invitás a tus compañeros por email.
+          Armás el equipo una sola vez e invitás a tus compañeros. Después lo inscribís en todos los torneos
+          por equipos que quieras, sin volver a invitar a nadie.
         </p>
       </div>
     </section>
@@ -60,15 +61,14 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
       <section class="gestion-section">
         <div class="container">
           <div class="gestion-panel invitaciones-panel">
-            <h2 class="gestion-titulo">Invitaciones (<?= count($invitaciones) ?>)</h2>
+            <h2 class="gestion-titulo">Te invitaron (<?= count($invitaciones) ?>)</h2>
             <ul class="inscripciones-lista">
               <?php foreach ($invitaciones as $inv): ?>
                 <li class="inscripcion-item">
                   <div class="inscripcion-info">
                     <span class="participante-nombre"><?= e($inv['equipo_nombre']) ?></span>
                     <span class="participante-extra">
-                      <?= e($inv['lider_nombre']) ?> te invitó a jugar
-                      <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $inv['torneo_id'] ?>" class="form-link"><?= e($inv['torneo_nombre']) ?></a>
+                      Te invitó <?= e($inv['lider_nombre']) ?> · <?= (int) $inv['miembros'] ?> integrantes
                     </span>
                   </div>
                   <div class="inscripcion-botones">
@@ -89,6 +89,22 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
       </section>
     <?php endif; ?>
 
+    <section class="gestion-section">
+      <div class="container">
+        <div class="gestion-panel">
+          <h2 class="gestion-titulo">Crear un equipo</h2>
+          <p class="gestion-ayuda">Vas a ser el líder: invitás a los integrantes y lo inscribís en los torneos.</p>
+          <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=crear" method="post">
+            <div class="form-group">
+              <label for="nombre">Nombre del equipo</label>
+              <input type="text" id="nombre" name="nombre" maxlength="150" placeholder="Ej: Las Gurisas Vóley" required />
+            </div>
+            <button type="submit" class="btn btn-gradient">Crear equipo</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section class="participantes-section">
       <div class="container">
         <h2 class="section-title">Equipos en los que estoy</h2>
@@ -100,23 +116,17 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
                 <div class="inscripcion-info">
                   <a href="/tornea/app/views/equipo.php?id=<?= (int) $eq['id'] ?>" class="participante-nombre"><?= e($eq['nombre']) ?></a>
                   <span class="participante-extra">
-                    <?= e($eq['torneo_nombre']) ?> · <?= etiquetaEstado($eq['torneo_estado']) ?>
-                  </span>
-                  <span class="participante-extra">
-                    <?= (int) $eq['lider_id'] === (int) $usuario_id ? 'Sos el líder' : 'Sos miembro' ?> · <?= (int) $eq['miembros'] ?> integrantes
+                    <?= (int) $eq['lider_id'] === (int) $usuario_id ? 'Sos el líder' : 'Sos integrante' ?> · <?= (int) $eq['miembros'] ?> integrantes
                   </span>
                 </div>
-                <?php if ($eq['estado_inscripcion']): ?>
-                  <span class="inscripcion-estado inscripcion-<?= e($eq['estado_inscripcion']) ?>"><?= ucfirst(e($eq['estado_inscripcion'])) ?></span>
-                <?php endif; ?>
+                <span class="participante-extra">
+                  <?= (int) $eq['torneos_activos'] === 1 ? '1 torneo activo' : (int) $eq['torneos_activos'] . ' torneos activos' ?>
+                </span>
               </li>
             <?php endforeach; ?>
           </ul>
         <?php else: ?>
-          <p class="detalle-vacio">
-            Todavía no estás en ningún equipo.
-            <a href="/tornea/app/views/torneos.php" class="form-link form-link-strong">Buscá un torneo por equipos</a> para armar el tuyo.
-          </p>
+          <p class="detalle-vacio">Todavía no estás en ningún equipo. Creá uno o pedile al líder de tu equipo que te invite.</p>
         <?php endif; ?>
       </div>
     </section>
