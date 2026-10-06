@@ -1,5 +1,21 @@
 <?php
 session_start();
+require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/formato.php';
+
+// Solo un usuario con sesión iniciada puede crear torneos
+if (!isset($_SESSION['usuario'])) {
+    $_SESSION['error'] = 'Tenés que iniciar sesión para crear un torneo';
+    header('Location: /tornea/app/views/login.php');
+    exit;
+}
+
+// Datos del intento anterior (si hubo un error) para volver a llenar el formulario
+$form = $_SESSION['form_torneo'] ?? [];
+unset($_SESSION['form_torneo']);
+
+// Fecha mínima para los campos de fecha: no se puede crear un torneo que empiece en el pasado
+$hoy = (new Torneo())->fechaHoy();
 ?>
 
 <!DOCTYPE html>
@@ -12,7 +28,7 @@ session_start();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/auth.css" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=2" />
 </head>
 <body>
 
@@ -47,55 +63,19 @@ session_start();
         <h1 class="auth-title">Creá tu torneo</h1>
         <p class="auth-subtitle">Completá los datos básicos para arrancar</p>
 
-        <form class="auth-form" action="#" method="post">
-          <div class="form-group">
-            <label for="nombre">Nombre del torneo</label>
-            <input type="text" id="nombre" name="nombre" placeholder="Ej: Liga Amateur de Fútbol 5" required />
-          </div>
+        <?php if (isset($_SESSION['error'])): ?>
+          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+        <?php endif; ?>
 
-          <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" placeholder="Contá de qué se trata el torneo..."></textarea>
-          </div>
+        <?php if (isset($_SESSION['exito'])): ?>
+          <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
+        <?php endif; ?>
 
-          <div class="form-group">
-            <label for="deporte">Deporte</label>
-            <select id="deporte" name="deporte" required>
-              <option value="" selected disabled>Seleccioná un deporte</option>
-              <option value="futbol">Fútbol</option>
-              <option value="basquet">Básquet</option>
-              <option value="esports">eSports</option>
-              <option value="ajedrez">Ajedrez</option>
-              <option value="padel">Pádel</option>
-              <option value="voley">Vóley</option>
-              <option value="otro">Otro</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="tipo">Tipo de torneo</label>
-            <select id="tipo" name="tipo" required>
-              <option value="" selected disabled>Seleccioná un tipo</option>
-              <option value="liga">Liga</option>
-              <option value="eliminacion_directa">Eliminación directa</option>
-              <option value="suizo">Sistema suizo</option>
-            </select>
-          </div>
-
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label for="fecha_inicio">Fecha de inicio</label>
-              <input type="date" id="fecha_inicio" name="fecha_inicio" required />
-            </div>
-
-            <div class="form-group">
-              <label for="fecha_fin">Fecha de finalización</label>
-              <input type="date" id="fecha_fin" name="fecha_fin" required />
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-gradient btn-lg btn-block">CREAR TORNEO</button>
-        </form>
+        <?php
+          $accion_form = '/tornea/app/controllers/TorneoController.php?accion=crear';
+          $texto_boton = 'CREAR TORNEO';
+          include __DIR__ . '/partials/form-torneo.php';
+        ?>
       </div>
     </section>
   </main>

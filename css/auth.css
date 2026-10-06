@@ -174,3 +174,10 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Aclaración debajo de un campo (ej. por qué no se puede cambiar) */
+.form-ayuda {
+  margin-top: -6px;
+  font-size: 0.85rem;
+  color: var(--gray-text);
+}

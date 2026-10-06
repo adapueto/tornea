@@ -43,6 +43,7 @@ CREATE TABLE torneos (
   descripcion TEXT,
   deporte VARCHAR(100),
   tipo ENUM('liga','eliminacion','suizo') NOT NULL,
+  modalidad ENUM('individual','equipo') NOT NULL DEFAULT 'individual',
   fecha_inicio DATE,
   fecha_fin DATE,
   estado ENUM('borrador','publicado','en_curso','finalizado') DEFAULT 'borrador',

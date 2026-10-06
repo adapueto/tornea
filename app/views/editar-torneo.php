@@ -3,7 +3,42 @@ session_start();
 require_once __DIR__ . '/../models/torneo.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
-$torneos = (new Torneo())->listarPublicos();
+// Editar un torneo (RF-19): solo sus organizadores, y solo si es borrador o publicado
+
+if (!isset($_SESSION['usuario'])) {
+    $_SESSION['error'] = 'Tenés que iniciar sesión para editar un torneo';
+    header('Location: /tornea/app/views/login.php');
+    exit;
+}
+
+$modelo = new Torneo();
+$torneo_id = (int) ($_GET['id'] ?? 0);
+$torneo = $modelo->buscarPorId($torneo_id);
+
+if (!$torneo || !$modelo->puedeGestionar($torneo_id, $_SESSION['usuario']['id'])) {
+    $_SESSION['error'] = 'Solo un organizador del torneo o un administrador puede editarlo';
+    header('Location: /tornea/app/views/perfil.php');
+    exit;
+}
+
+if (!Torneo::sePuedeEditar($torneo)) {
+    $_SESSION['error'] = 'Un torneo en curso o finalizado ya no se puede modificar';
+    header('Location: /tornea/app/views/torneo-detalle.php?id=' . $torneo_id);
+    exit;
+}
+
+// Si hubo un error se muestran los datos que se habían escrito; si no, los guardados
+$form = $_SESSION['form_torneo'] ?? $torneo;
+unset($_SESSION['form_torneo']);
+
+$bloquear_formato = Torneo::formatoBloqueado($torneo);
+if ($bloquear_formato) {
+    $form['deporte'] = $torneo['deporte'];
+    $form['tipo'] = $torneo['tipo'];
+    $form['modalidad'] = $torneo['modalidad'];
+}
+
+$hoy = $modelo->fechaHoy();
 ?>
 
 <!DOCTYPE html>
@@ -11,12 +46,12 @@ $torneos = (new Torneo())->listarPublicos();
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Torneos — Tornea</title>
+  <title>Editar <?= e($torneo['nombre']) ?> — Tornea</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=2" />
 </head>
 <body>
 
@@ -24,9 +59,9 @@ $torneos = (new Torneo())->listarPublicos();
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
         <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
+        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
       </a>
-
+      
       <nav class="main-nav">
         <a href="/tornea/index.php" class="nav-link">Inicio</a>
         <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
@@ -44,24 +79,30 @@ $torneos = (new Torneo())->listarPublicos();
   </header>
 
   <main>
-    <section class="torneos-hero">
-      <div class="container">
-        <h1 class="torneos-title">Torneos publicados</h1>
-        <p class="torneos-subtitle">Explorá los torneos activos y próximos de cualquier deporte.</p>
-      </div>
-    </section>
+    <section class="auth-section">
+      <div class="auth-card auth-card-wide">
+        <img src="/tornea/img/logo.png" alt="Tornea" class="auth-logo-icon" />
 
-    <section class="torneos-list">
-      <div class="container torneos-grid">
+        <h1 class="auth-title">Editar torneo</h1>
+        <p class="auth-subtitle"><?= e($torneo['nombre']) ?> · <?= etiquetaEstado($torneo['estado']) ?></p>
 
-        <?php foreach ($torneos as $t): ?>
-          <?php include __DIR__ . '/partials/torneo-card.php'; ?>
-        <?php endforeach; ?>
-
-        <?php if (!$torneos): ?>
-          <p class="torneos-vacio">Todavía no hay torneos publicados.</p>
+        <?php if (isset($_SESSION['error'])): ?>
+          <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
         <?php endif; ?>
 
+        <?php if (isset($_SESSION['exito'])): ?>
+          <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
+        <?php endif; ?>
+
+        <?php
+          $accion_form = '/tornea/app/controllers/TorneoController.php?accion=editar';
+          $texto_boton = 'GUARDAR CAMBIOS';
+          include __DIR__ . '/partials/form-torneo.php';
+        ?>
+
+        <p class="auth-footer-text">
+          <a href="/tornea/app/views/torneo-detalle.php?id=<?= $torneo_id ?>" class="form-link">Cancelar y volver al torneo</a>
+        </p>
       </div>
     </section>
   </main>

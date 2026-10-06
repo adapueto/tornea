@@ -229,10 +229,61 @@
   gap: 40px;
 }
 
+/* ===== Participantes (todos los tipos) ===== */
+
+.participantes-section {
+  padding: 20px 0 80px;
+}
+
+.participantes-lista {
+  list-style: none;
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.participante-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 18px;
+}
+
+.participante-nombre {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.participante-extra {
+  color: var(--gray-text);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Mensaje cuando todavía no hay tabla, rondas o participantes */
+.detalle-vacio {
+  margin-top: 24px;
+  padding: 24px;
+  text-align: center;
+  color: var(--gray-text);
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
 /* ===== Responsive — mobile first ===== */
 
 /* Tablet y más grande: las rondas del bracket se acomodan en columnas */
 @media (min-width: 768px) {
+  .participantes-lista {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .bracket {
     flex-direction: row;
     align-items: flex-start;
@@ -246,6 +297,64 @@
 
   .torneo-detalle-datos {
     flex-direction: row;
-    gap: 28px;
+    flex-wrap: wrap;
+    gap: 8px 28px;
   }
+
+  /* Liga y suizo: los partidos de cada fecha/ronda en columnas, no uno abajo del otro */
+  .fecha-grupo .bracket-matches {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .fecha-grupo .bracket-matches {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== Panel de gestión (solo organizadores) ===== */
+
+.gestion-section {
+  padding: 32px 0 0;
+}
+
+.gestion-panel {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  border-top: 4px solid var(--gold);
+  padding: 24px;
+}
+
+.gestion-titulo {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.gestion-ayuda {
+  color: var(--gray-text);
+  font-size: 0.92rem;
+}
+
+.gestion-acciones {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Aviso cuando un administrador gestiona un torneo que no organiza */
+.gestion-admin {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--bg-light);
 }

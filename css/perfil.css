@@ -238,3 +238,14 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Estado de la inscripción en "Torneos en los que participo" */
+.participacion-pendiente {
+  color: var(--gold);
+  background: rgba(229, 116, 14, 0.12);
+}
+
+.participacion-rechazado {
+  color: var(--gray-text);
+  background: var(--bg-light);
+}

@@ -162,7 +162,7 @@ creado_usuario = {u[0]: u[7] for u in usuarios}
 # Torneos
 # ---------------------------------------------------------------------------
 
-torneos = []               # (id, nombre, descripcion, deporte, tipo, fecha_inicio, fecha_fin, estado, created_at)
+torneos = []               # (id, nombre, descripcion, deporte, tipo, modalidad, fecha_inicio, fecha_fin, estado, created_at)
 torneo_organizadores = []  # (torneo_id, usuario_id)
 equipos = []               # (id, nombre, torneo_id, lider_id)
 equipo_miembros = []       # (equipo_id, usuario_id)
@@ -250,6 +250,8 @@ for tid in range(1, CANT_TORNEOS + 1):
     tipo = TIPOS[(tid - 1) % 3]
     estado = ESTADOS[tid - 1]
 
+    # "Liga ..." solo para torneos tipo liga, para que el nombre no confunda
+    prefijos = [x for x in prefijos if tipo == "liga" or not x.startswith("Liga")] or ["Torneo"]
     nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
     while nombre in nombres_torneo_usados:
         nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
@@ -271,7 +273,7 @@ for tid in range(1, CANT_TORNEOS + 1):
     descripcion = f"Torneo de {deporte} {modalidad} con formato {formato}. Abierto a todos los niveles."
 
     organizador = random.choice(ORGANIZADORES)
-    torneos.append((tid, nombre, descripcion, deporte, tipo, inicio, fin, estado, creado))
+    torneos.append((tid, nombre, descripcion, deporte, tipo, "equipo" if de_equipo else "individual", inicio, fin, estado, creado))
     torneo_organizadores.append((tid, organizador))
     auditoria.append((organizador, "INSERT", "torneos", tid, creado))
     if random.random() < 0.3:
@@ -290,6 +292,8 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     inscripcion = creado + timedelta(days=2)
     candidatos = random.sample(PARTICIPANTES, k=len(PARTICIPANTES))
+    # Nombres de equipo sin repetir dentro del mismo torneo
+    nombres_equipo = random.sample(NOMBRES_EQUIPO, k=len(NOMBRES_EQUIPO))
     aprobados = []
 
     def nuevo_participante(estado_insc, usuario=None, equipo=None):
@@ -313,7 +317,7 @@ for tid in range(1, CANT_TORNEOS + 1):
         if de_equipo:
             eq_id += 1
             lider = candidatos.pop()
-            nombre_eq = random.choice(NOMBRES_EQUIPO)
+            nombre_eq = nombres_equipo.pop()
             equipos.append((eq_id, nombre_eq, tid, lider))
             equipo_miembros.append((eq_id, lider))
             auditoria.append((lider, "INSERT", "equipos", eq_id, no_futuro(inscripcion - timedelta(hours=49))))
@@ -423,7 +427,7 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     # fecha_fin acorde a la cantidad de rondas (una por semana)
     t = torneos[-1]
-    torneos[-1] = t[:6] + (inicio + timedelta(days=7 * (cant_rondas - 1)),) + t[7:]
+    torneos[-1] = t[:7] + (inicio + timedelta(days=7 * (cant_rondas - 1)),) + t[8:]
 
     if tipo in ("liga", "suizo"):
         for p in aprobados:
@@ -471,7 +475,7 @@ USE tornea;
 
 {insert("usuarios", ["id", "nombre", "apellido", "email", "password", "fecha_nac", "perfil_publico", "created_at"], usuarios)}
 {insert("usuario_roles", ["usuario_id", "rol_id"], usuario_roles)}
-{insert("torneos", ["id", "nombre", "descripcion", "deporte", "tipo", "fecha_inicio", "fecha_fin", "estado", "created_at"], torneos)}
+{insert("torneos", ["id", "nombre", "descripcion", "deporte", "tipo", "modalidad", "fecha_inicio", "fecha_fin", "estado", "created_at"], torneos)}
 {insert("torneo_organizadores", ["torneo_id", "usuario_id"], torneo_organizadores)}
 {insert("equipos", ["id", "nombre", "torneo_id", "lider_id"], equipos)}
 {insert("equipo_miembros", ["equipo_id", "usuario_id"], equipo_miembros)}
