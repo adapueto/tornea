@@ -6,7 +6,14 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/formato.php';
+
 $usuario = $_SESSION['usuario'];
+
+$modeloTorneo = new Torneo();
+$mis_torneos = $modeloTorneo->listarPorOrganizador($usuario['id']);
+$participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -18,8 +25,8 @@ $usuario = $_SESSION['usuario'];
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/torneos.css" />
-  <link rel="stylesheet" href="/tornea/css/perfil.css?v=2" />
+  <link rel="stylesheet" href="/tornea/css/torneos.css?v=2" />
+  <link rel="stylesheet" href="/tornea/css/perfil.css?v=3" />
 </head>
 <body>
 
@@ -72,6 +79,64 @@ $usuario = $_SESSION['usuario'];
           </div>
 
           <a href="/tornea/app/views/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
+        </div>
+
+        <div class="perfil-torneos">
+          <?php if (isset($_SESSION['error'])): ?>
+            <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
+          <?php endif; ?>
+
+          <?php if (isset($_SESSION['exito'])): ?>
+            <p style="color:green; margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
+          <?php endif; ?>
+
+          <div class="perfil-torneos-header">
+            <h2 class="perfil-torneos-titulo">Mis torneos</h2>
+            <p class="perfil-torneos-subtitle">Los torneos que organizás. Los borradores solo los ves vos hasta que los publiques.</p>
+          </div>
+
+          <div class="perfil-torneos-grid">
+            <?php $mostrar_publicar = true; ?>
+            <?php foreach ($mis_torneos as $t): ?>
+              <?php include __DIR__ . '/partials/torneo-card.php'; ?>
+            <?php endforeach; ?>
+            <?php $mostrar_publicar = false; ?>
+
+            <?php if (!$mis_torneos): ?>
+              <p class="torneos-vacio">
+                Todavía no organizás ningún torneo.
+                <a href="/tornea/app/views/crear-torneo.php" class="form-link form-link-strong">Creá el primero</a>
+              </p>
+            <?php endif; ?>
+          </div>
+
+          <div class="perfil-participaciones">
+            <div class="perfil-torneos-header">
+              <h2 class="perfil-torneos-titulo">Torneos en los que participo</h2>
+              <p class="perfil-torneos-subtitle">Tus inscripciones, individuales o con tu equipo.</p>
+            </div>
+
+            <?php if ($participaciones): ?>
+              <ul class="participacion-list">
+                <?php foreach ($participaciones as $p): ?>
+                  <li class="participacion-item">
+                    <div class="participacion-info">
+                      <span class="participacion-nombre"><?= e($p['nombre']) ?></span>
+                      <span class="participacion-tipo">
+                        <?= etiquetaTipo($p['tipo']) ?> · <?= etiquetaEstado($p['estado_torneo']) ?>
+                        <?php if ($p['equipo']): ?> · con <?= e($p['equipo']) ?><?php endif; ?>
+                      </span>
+                    </div>
+                    <span class="participacion-resultado participacion-<?= e($p['estado_inscripcion']) ?>">
+                      Inscripción <?= e($p['estado_inscripcion']) ?>
+                    </span>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            <?php else: ?>
+              <p class="perfil-torneos-subtitle">Todavía no te inscribiste en ningún torneo.</p>
+            <?php endif; ?>
+          </div>
         </div>
 
       </div>

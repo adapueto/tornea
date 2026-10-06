@@ -8,7 +8,7 @@ $accion = $_GET['accion'] ?? '';
 
 // Todas las acciones de torneo requieren sesión iniciada
 if (!isset($_SESSION['usuario'])) {
-    $_SESSION['error'] = 'Tenés que iniciar sesión para crear un torneo';
+    $_SESSION['error'] = 'Tenés que iniciar sesión para continuar';
     header('Location: /tornea/app/views/login.php');
     exit;
 }
@@ -28,14 +28,35 @@ if ($accion === 'crear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $resultado = $torneo->crear($datos, $_SESSION['usuario']['id']);
 
     if ($resultado['exito']) {
-        $_SESSION['exito'] = $resultado['mensaje'];
+        // El torneo nuevo queda como borrador en "Mis torneos" del perfil
+        $_SESSION['exito'] = $resultado['mensaje'] . '. Publicalo desde "Mis torneos" cuando esté listo.';
+        header('Location: /tornea/app/views/perfil.php');
     } else {
         $_SESSION['error'] = $resultado['mensaje'];
         // Se guardan los datos para no tener que escribir todo de nuevo
         $_SESSION['form_torneo'] = $datos;
+        header('Location: /tornea/app/views/crear-torneo.php');
     }
+    exit;
+}
 
-    header('Location: /tornea/app/views/crear-torneo.php');
+if ($accion === 'publicar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = (int) ($_POST['id'] ?? 0);
+
+    $resultado = $torneo->publicar($id, $_SESSION['usuario']['id']);
+
+    $_SESSION[$resultado['exito'] ? 'exito' : 'error'] = $resultado['mensaje'];
+    header('Location: /tornea/app/views/perfil.php');
+    exit;
+}
+
+if ($accion === 'eliminar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = (int) ($_POST['id'] ?? 0);
+
+    $resultado = $torneo->eliminar($id, $_SESSION['usuario']['id']);
+
+    $_SESSION[$resultado['exito'] ? 'exito' : 'error'] = $resultado['mensaje'];
+    header('Location: /tornea/app/views/perfil.php');
     exit;
 }
 

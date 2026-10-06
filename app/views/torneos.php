@@ -1,5 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/formato.php';
+
+$torneos = (new Torneo())->listarPublicos();
 ?>
 
 <!DOCTYPE html>
@@ -12,7 +16,7 @@ session_start();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
-  <link rel="stylesheet" href="/tornea/css/torneos.css" />
+  <link rel="stylesheet" href="/tornea/css/torneos.css?v=2" />
 </head>
 <body>
 
@@ -50,71 +54,13 @@ session_start();
     <section class="torneos-list">
       <div class="container torneos-grid">
 
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">⚽ Fútbol</span>
-            <span class="torneo-estado torneo-estado-publicado">Publicado</span>
-          </div>
-          <h3 class="torneo-nombre">Liga Amateur de Fútbol 5</h3>
-          <p class="torneo-tipo">Liga</p>
-          <p class="torneo-fechas">10 ago — 20 sep 2026</p>
-          <a href="#" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
+        <?php foreach ($torneos as $t): ?>
+          <?php include __DIR__ . '/partials/torneo-card.php'; ?>
+        <?php endforeach; ?>
 
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">🎮 eSports</span>
-            <span class="torneo-estado torneo-estado-en-curso">En curso</span>
-          </div>
-          <h3 class="torneo-nombre">Copa eSports Valorant</h3>
-          <p class="torneo-tipo">Eliminación directa</p>
-          <p class="torneo-fechas">1 jul — 15 jul 2026</p>
-          <a href="torneo-detalle-eliminacion.html" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
-
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">♟️ Ajedrez</span>
-            <span class="torneo-estado torneo-estado-publicado">Publicado</span>
-          </div>
-          <h3 class="torneo-nombre">Torneo Suizo de Ajedrez</h3>
-          <p class="torneo-tipo">Sistema suizo</p>
-          <p class="torneo-fechas">5 ago 2026</p>
-          <a href="torneo-detalle-suizo.html" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
-
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">🏀 Básquet</span>
-            <span class="torneo-estado torneo-estado-en-curso">En curso</span>
-          </div>
-          <h3 class="torneo-nombre">Liga de Básquet 3x3</h3>
-          <p class="torneo-tipo">Liga</p>
-          <p class="torneo-fechas">15 jun — 30 jul 2026</p>
-          <a href="torneo-detalle-liga.html" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
-
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">🎾 Pádel</span>
-            <span class="torneo-estado torneo-estado-publicado">Publicado</span>
-          </div>
-          <h3 class="torneo-nombre">Copa Relámpago de Pádel</h3>
-          <p class="torneo-tipo">Eliminación directa</p>
-          <p class="torneo-fechas">12 ago 2026</p>
-          <a href="#" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
-
-        <article class="torneo-card">
-          <div class="torneo-card-top">
-            <span class="torneo-badge">🏓 Vóley</span>
-            <span class="torneo-estado torneo-estado-publicado">Publicado</span>
-          </div>
-          <h3 class="torneo-nombre">Torneo Suizo de Vóley Playa</h3>
-          <p class="torneo-tipo">Sistema suizo</p>
-          <p class="torneo-fechas">20 ago — 22 ago 2026</p>
-          <a href="#" class="btn btn-outline btn-block">Ver detalle</a>
-        </article>
+        <?php if (!$torneos): ?>
+          <p class="torneos-vacio">Todavía no hay torneos publicados.</p>
+        <?php endif; ?>
 
       </div>
     </section>

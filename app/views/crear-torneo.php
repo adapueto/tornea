@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/formato.php';
 
 // Solo un usuario con sesión iniciada puede crear torneos
 if (!isset($_SESSION['usuario'])) {
@@ -13,9 +14,8 @@ if (!isset($_SESSION['usuario'])) {
 $form = $_SESSION['form_torneo'] ?? [];
 unset($_SESSION['form_torneo']);
 
-function e($texto) {
-    return htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
-}
+// Fecha mínima para los campos de fecha: no se puede crear un torneo que empiece en el pasado
+$hoy = (new Torneo())->fechaHoy();
 ?>
 
 <!DOCTYPE html>
@@ -105,12 +105,12 @@ function e($texto) {
           <div class="form-grid-2">
             <div class="form-group">
               <label for="fecha_inicio">Fecha de inicio</label>
-              <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= e($form['fecha_inicio'] ?? '') ?>" required />
+              <input type="date" id="fecha_inicio" name="fecha_inicio" min="<?= $hoy ?>" value="<?= e($form['fecha_inicio'] ?? '') ?>" required />
             </div>
 
             <div class="form-group">
               <label for="fecha_fin">Fecha de finalización</label>
-              <input type="date" id="fecha_fin" name="fecha_fin" value="<?= e($form['fecha_fin'] ?? '') ?>" required />
+              <input type="date" id="fecha_fin" name="fecha_fin" min="<?= $hoy ?>" value="<?= e($form['fecha_fin'] ?? '') ?>" required />
             </div>
           </div>
 

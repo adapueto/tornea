@@ -1,5 +1,9 @@
 <?php
 session_start();
+require_once __DIR__ . '/app/models/torneo.php';
+require_once __DIR__ . '/app/helpers/formato.php';
+
+$destacados = (new Torneo())->listarDestacados(3);
 ?>
 
 <!DOCTYPE html>
@@ -13,7 +17,7 @@ session_start();
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/torneos.css" />
+  <link rel="stylesheet" href="css/torneos.css?v=2" />
 </head>
 <body>
 
@@ -109,38 +113,13 @@ session_start();
 
         <div class="torneos-grid">
 
-          <article class="torneo-card">
-            <div class="torneo-card-top">
-              <span class="torneo-badge">🎮 eSports</span>
-              <span class="torneo-estado torneo-estado-en-curso">En curso</span>
-            </div>
-            <h3 class="torneo-nombre">Copa eSports Valorant</h3>
-            <p class="torneo-tipo">Eliminación directa</p>
-            <p class="torneo-fechas">1 jul — 15 jul 2026</p>
-            <a href="torneo-detalle-eliminacion.html" class="btn btn-outline btn-block">Ver detalle</a>
-          </article>
+          <?php foreach ($destacados as $t): ?>
+            <?php include __DIR__ . '/app/views/partials/torneo-card.php'; ?>
+          <?php endforeach; ?>
 
-          <article class="torneo-card">
-            <div class="torneo-card-top">
-              <span class="torneo-badge">🏀 Básquet</span>
-              <span class="torneo-estado torneo-estado-en-curso">En curso</span>
-            </div>
-            <h3 class="torneo-nombre">Liga de Básquet 3x3</h3>
-            <p class="torneo-tipo">Liga</p>
-            <p class="torneo-fechas">15 jun — 30 jul 2026</p>
-            <a href="torneo-detalle-liga.html" class="btn btn-outline btn-block">Ver detalle</a>
-          </article>
-
-          <article class="torneo-card">
-            <div class="torneo-card-top">
-              <span class="torneo-badge">♟️ Ajedrez</span>
-              <span class="torneo-estado torneo-estado-publicado">Publicado</span>
-            </div>
-            <h3 class="torneo-nombre">Torneo Suizo de Ajedrez</h3>
-            <p class="torneo-tipo">Sistema suizo</p>
-            <p class="torneo-fechas">5 ago 2026</p>
-            <a href="torneo-detalle-suizo.html" class="btn btn-outline btn-block">Ver detalle</a>
-          </article>
+          <?php if (!$destacados): ?>
+            <p class="torneos-vacio">Todavía no hay torneos en curso ni próximos.</p>
+          <?php endif; ?>
 
         </div>
 

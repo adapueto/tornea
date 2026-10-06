@@ -142,3 +142,43 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ===== Estados que vienen de la base ===== */
+
+.torneo-estado-borrador {
+  color: var(--gray-text);
+  background: var(--bg-light);
+}
+
+.torneo-estado-finalizado {
+  color: var(--navy);
+  background: rgba(30, 58, 95, 0.1);
+}
+
+/* "Publicar" y "Eliminar" ocupan el lugar del botón "Ver detalle" en los borradores */
+.torneo-card-acciones {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.torneo-card-acciones form {
+  flex: 1;
+}
+
+.torneo-card-acciones .btn {
+  width: 100%;
+}
+
+.btn-peligro {
+  border: 2px solid var(--red);
+  color: var(--red);
+  background: transparent;
+}
+
+.torneos-vacio {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--gray-text);
+  padding: 24px 0;
+}
