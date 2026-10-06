@@ -17,6 +17,23 @@ function etiquetaEstado($estado) {
     return $estados[$estado] ?? $estado;
 }
 
+function etiquetaEstadoPartido($estado) {
+    $estados = ['pendiente' => 'Pendiente', 'en_curso' => 'En curso', 'finalizado' => 'Finalizado'];
+    return $estados[$estado] ?? $estado;
+}
+
+// "Fecha 3 · jugada", "Ronda 2 · en juego", "Fecha 5 · próxima"
+function etiquetaRonda($prefijo, $numero, $estado) {
+    $estados = ['finalizada' => 'jugada', 'en_curso' => 'en juego', 'pendiente' => 'próxima'];
+    return $prefijo . ' ' . $numero . ' · ' . ($estados[$estado] ?? $estado);
+}
+
+// Nombre de una ronda de eliminación directa según cuántos cruces tiene
+function nombreRondaEliminacion($cruces) {
+    $nombres = [1 => 'Final', 2 => 'Semifinal', 4 => 'Cuartos de final', 8 => 'Octavos de final'];
+    return $nombres[$cruces] ?? 'Ronda de ' . ($cruces * 2);
+}
+
 // Clase CSS del estado: torneo-estado-publicado, torneo-estado-en-curso, etc.
 function claseEstado($estado) {
     return 'torneo-estado-' . str_replace('_', '-', $estado);

@@ -121,7 +121,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
                 <?php foreach ($participaciones as $p): ?>
                   <li class="participacion-item">
                     <div class="participacion-info">
-                      <span class="participacion-nombre"><?= e($p['nombre']) ?></span>
+                      <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $p['id'] ?>" class="participacion-nombre"><?= e($p['nombre']) ?></a>
                       <span class="participacion-tipo">
                         <?= etiquetaTipo($p['tipo']) ?> · <?= etiquetaEstado($p['estado_torneo']) ?>
                         <?php if ($p['equipo']): ?> · con <?= e($p['equipo']) ?><?php endif; ?>

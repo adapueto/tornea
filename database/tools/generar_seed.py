@@ -250,6 +250,8 @@ for tid in range(1, CANT_TORNEOS + 1):
     tipo = TIPOS[(tid - 1) % 3]
     estado = ESTADOS[tid - 1]
 
+    # "Liga ..." solo para torneos tipo liga, para que el nombre no confunda
+    prefijos = [x for x in prefijos if tipo == "liga" or not x.startswith("Liga")] or ["Torneo"]
     nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
     while nombre in nombres_torneo_usados:
         nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
@@ -290,6 +292,8 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     inscripcion = creado + timedelta(days=2)
     candidatos = random.sample(PARTICIPANTES, k=len(PARTICIPANTES))
+    # Nombres de equipo sin repetir dentro del mismo torneo
+    nombres_equipo = random.sample(NOMBRES_EQUIPO, k=len(NOMBRES_EQUIPO))
     aprobados = []
 
     def nuevo_participante(estado_insc, usuario=None, equipo=None):
@@ -313,7 +317,7 @@ for tid in range(1, CANT_TORNEOS + 1):
         if de_equipo:
             eq_id += 1
             lider = candidatos.pop()
-            nombre_eq = random.choice(NOMBRES_EQUIPO)
+            nombre_eq = nombres_equipo.pop()
             equipos.append((eq_id, nombre_eq, tid, lider))
             equipo_miembros.append((eq_id, lider))
             auditoria.append((lider, "INSERT", "equipos", eq_id, no_futuro(inscripcion - timedelta(hours=49))))

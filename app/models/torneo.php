@@ -190,6 +190,95 @@ class Torneo {
         return $stmt->fetchAll();
     }
 
+    // ===== Detalle de un torneo =====
+
+    public function buscarPorId($id) {
+        $stmt = $this->pdo->prepare('SELECT * FROM torneos WHERE id = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    public function listarOrganizadores($torneo_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT u.id, CONCAT(u.nombre, ' ', u.apellido) AS nombre
+            FROM torneo_organizadores o
+            JOIN usuarios u ON u.id = o.usuario_id
+            WHERE o.torneo_id = ?
+            ORDER BY u.nombre
+        ");
+        $stmt->execute([$torneo_id]);
+        return $stmt->fetchAll();
+    }
+
+    // Participantes aprobados. "nombre" es el del equipo o el de la persona, según el tipo.
+    public function listarParticipantes($torneo_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT p.id, p.tipo,
+                   COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)) AS nombre,
+                   (SELECT COUNT(*) FROM equipo_miembros m WHERE m.equipo_id = p.equipo_id) AS miembros
+            FROM participantes p
+            LEFT JOIN equipos e ON e.id = p.equipo_id
+            LEFT JOIN usuarios u ON u.id = p.usuario_id
+            WHERE p.torneo_id = ? AND p.estado = 'aprobado'
+            ORDER BY nombre
+        ");
+        $stmt->execute([$torneo_id]);
+        return $stmt->fetchAll();
+    }
+
+    // Tabla de posiciones ordenada: más puntos, más partidos ganados, nombre.
+    // Los empates (pe) no están en la tabla: son los jugados que no se ganaron ni perdieron.
+    public function listarPosiciones($torneo_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT tp.pj, tp.pg, tp.pj - tp.pg - tp.pp AS pe, tp.pp, tp.puntos,
+                   COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)) AS nombre
+            FROM tabla_posiciones tp
+            JOIN participantes p ON p.id = tp.participante_id
+            LEFT JOIN equipos e ON e.id = p.equipo_id
+            LEFT JOIN usuarios u ON u.id = p.usuario_id
+            WHERE tp.torneo_id = ?
+            ORDER BY tp.puntos DESC, tp.pg DESC, nombre
+        ");
+        $stmt->execute([$torneo_id]);
+        return $stmt->fetchAll();
+    }
+
+    // Rondas con sus enfrentamientos y resultados, agrupadas:
+    // [ ['numero' => 1, 'estado' => ..., 'enfrentamientos' => [...]], ... ]
+    public function listarRondas($torneo_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT r.id AS ronda_id, r.numero, r.estado AS estado_ronda,
+                   en.id, en.estado,
+                   COALESCE(el.nombre, CONCAT(ul.nombre, ' ', ul.apellido)) AS local,
+                   COALESCE(ev.nombre, CONCAT(uv.nombre, ' ', uv.apellido)) AS visitante,
+                   res.score_local, res.score_visitante
+            FROM rondas r
+            LEFT JOIN enfrentamientos en ON en.ronda_id = r.id
+            LEFT JOIN participantes pl ON pl.id = en.participante_local_id
+            LEFT JOIN equipos el ON el.id = pl.equipo_id
+            LEFT JOIN usuarios ul ON ul.id = pl.usuario_id
+            LEFT JOIN participantes pv ON pv.id = en.participante_visitante_id
+            LEFT JOIN equipos ev ON ev.id = pv.equipo_id
+            LEFT JOIN usuarios uv ON uv.id = pv.usuario_id
+            LEFT JOIN resultados res ON res.enfrentamiento_id = en.id
+            WHERE r.torneo_id = ?
+            ORDER BY r.numero, en.id
+        ");
+        $stmt->execute([$torneo_id]);
+
+        $rondas = [];
+        foreach ($stmt->fetchAll() as $fila) {
+            $n = $fila['numero'];
+            if (!isset($rondas[$n])) {
+                $rondas[$n] = ['numero' => $n, 'estado' => $fila['estado_ronda'], 'enfrentamientos' => []];
+            }
+            if ($fila['id'] !== null) {
+                $rondas[$n]['enfrentamientos'][] = $fila;
+            }
+        }
+        return array_values($rondas);
+    }
+
     public function esOrganizador($torneo_id, $usuario_id) {
         $stmt = $this->pdo->prepare('SELECT 1 FROM torneo_organizadores WHERE torneo_id = ? AND usuario_id = ?');
         $stmt->execute([$torneo_id, $usuario_id]);

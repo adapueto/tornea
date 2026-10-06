@@ -1,14 +1,6 @@
 <?php
 // Tarjeta de un torneo. Espera la variable $t (una fila de la tabla torneos).
 // Si $mostrar_publicar es true y el torneo es borrador, muestra los botones para publicarlo o eliminarlo.
-
-// Las páginas de detalle todavía son una plantilla estática por tipo;
-// cuando exista torneo-detalle.php?id= este link apunta ahí.
-$detalle = [
-    'liga' => '/tornea/torneo-detalle-liga.html',
-    'eliminacion' => '/tornea/torneo-detalle-eliminacion.html',
-    'suizo' => '/tornea/torneo-detalle-suizo.html',
-][$t['tipo']];
 ?>
 <article class="torneo-card">
   <div class="torneo-card-top">
@@ -32,6 +24,6 @@ $detalle = [
       </form>
     </div>
   <?php else: ?>
-    <a href="<?= $detalle ?>" class="btn btn-outline btn-block">Ver detalle</a>
+    <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $t['id'] ?>" class="btn btn-outline btn-block">Ver detalle</a>
   <?php endif; ?>
 </article>
