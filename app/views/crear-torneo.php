@@ -1,5 +1,21 @@
 <?php
 session_start();
+require_once __DIR__ . '/../models/torneo.php';
+
+// Solo un usuario con sesión iniciada puede crear torneos
+if (!isset($_SESSION['usuario'])) {
+    $_SESSION['error'] = 'Tenés que iniciar sesión para crear un torneo';
+    header('Location: /tornea/app/views/login.php');
+    exit;
+}
+
+// Datos del intento anterior (si hubo un error) para volver a llenar el formulario
+$form = $_SESSION['form_torneo'] ?? [];
+unset($_SESSION['form_torneo']);
+
+function e($texto) {
+    return htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
+}
 ?>
 
 <!DOCTYPE html>
@@ -47,50 +63,54 @@ session_start();
         <h1 class="auth-title">Creá tu torneo</h1>
         <p class="auth-subtitle">Completá los datos básicos para arrancar</p>
 
-        <form class="auth-form" action="#" method="post">
+        <?php if (isset($_SESSION['error'])): ?>
+          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['exito'])): ?>
+          <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
+        <?php endif; ?>
+
+        <form class="auth-form" action="/tornea/app/controllers/TorneoController.php?accion=crear" method="post">
           <div class="form-group">
             <label for="nombre">Nombre del torneo</label>
-            <input type="text" id="nombre" name="nombre" placeholder="Ej: Liga Amateur de Fútbol 5" required />
+            <input type="text" id="nombre" name="nombre" maxlength="150" placeholder="Ej: Liga Amateur de Fútbol 5" value="<?= e($form['nombre'] ?? '') ?>" required />
           </div>
 
           <div class="form-group">
             <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" placeholder="Contá de qué se trata el torneo..."></textarea>
+            <textarea id="descripcion" name="descripcion" placeholder="Contá de qué se trata el torneo..."><?= e($form['descripcion'] ?? '') ?></textarea>
           </div>
 
           <div class="form-group">
             <label for="deporte">Deporte</label>
             <select id="deporte" name="deporte" required>
-              <option value="" selected disabled>Seleccioná un deporte</option>
-              <option value="futbol">Fútbol</option>
-              <option value="basquet">Básquet</option>
-              <option value="esports">eSports</option>
-              <option value="ajedrez">Ajedrez</option>
-              <option value="padel">Pádel</option>
-              <option value="voley">Vóley</option>
-              <option value="otro">Otro</option>
+              <option value="" disabled <?= empty($form['deporte']) ? 'selected' : '' ?>>Seleccioná un deporte</option>
+              <?php foreach (Torneo::DEPORTES as $deporte): ?>
+                <option value="<?= e($deporte) ?>" <?= ($form['deporte'] ?? '') === $deporte ? 'selected' : '' ?>><?= e($deporte) ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
 
           <div class="form-group">
             <label for="tipo">Tipo de torneo</label>
             <select id="tipo" name="tipo" required>
-              <option value="" selected disabled>Seleccioná un tipo</option>
-              <option value="liga">Liga</option>
-              <option value="eliminacion_directa">Eliminación directa</option>
-              <option value="suizo">Sistema suizo</option>
+              <option value="" disabled <?= empty($form['tipo']) ? 'selected' : '' ?>>Seleccioná un tipo</option>
+              <?php foreach (['liga' => 'Liga', 'eliminacion' => 'Eliminación directa', 'suizo' => 'Sistema suizo'] as $valor => $texto): ?>
+                <option value="<?= $valor ?>" <?= ($form['tipo'] ?? '') === $valor ? 'selected' : '' ?>><?= $texto ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
 
           <div class="form-grid-2">
             <div class="form-group">
               <label for="fecha_inicio">Fecha de inicio</label>
-              <input type="date" id="fecha_inicio" name="fecha_inicio" required />
+              <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= e($form['fecha_inicio'] ?? '') ?>" required />
             </div>
 
             <div class="form-group">
               <label for="fecha_fin">Fecha de finalización</label>
-              <input type="date" id="fecha_fin" name="fecha_fin" required />
+              <input type="date" id="fecha_fin" name="fecha_fin" value="<?= e($form['fecha_fin'] ?? '') ?>" required />
             </div>
           </div>
 
