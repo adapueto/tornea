@@ -15,8 +15,8 @@ $modelo = new Torneo();
 $torneo_id = (int) ($_GET['id'] ?? 0);
 $torneo = $modelo->buscarPorId($torneo_id);
 
-if (!$torneo || !$modelo->esOrganizador($torneo_id, $_SESSION['usuario']['id'])) {
-    $_SESSION['error'] = 'Solo un organizador del torneo puede editarlo';
+if (!$torneo || !$modelo->puedeGestionar($torneo_id, $_SESSION['usuario']['id'])) {
+    $_SESSION['error'] = 'Solo un organizador del torneo o un administrador puede editarlo';
     header('Location: /tornea/app/views/perfil.php');
     exit;
 }
@@ -35,6 +35,7 @@ $bloquear_formato = Torneo::formatoBloqueado($torneo);
 if ($bloquear_formato) {
     $form['deporte'] = $torneo['deporte'];
     $form['tipo'] = $torneo['tipo'];
+    $form['modalidad'] = $torneo['modalidad'];
 }
 
 $hoy = $modelo->fechaHoy();

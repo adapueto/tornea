@@ -92,7 +92,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
 
           <div class="perfil-torneos-header">
             <h2 class="perfil-torneos-titulo">Mis torneos</h2>
-            <p class="perfil-torneos-subtitle">Los torneos que organizás. Los borradores solo los ves vos hasta que los publiques.</p>
+            <p class="perfil-torneos-subtitle">Los torneos que organizás. Los borradores no son públicos hasta que los publiques.</p>
           </div>
 
           <div class="perfil-torneos-grid">

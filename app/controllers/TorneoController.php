@@ -30,6 +30,7 @@ if ($accion === 'crear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'descripcion' => $_POST['descripcion'] ?? '',
         'deporte' => $_POST['deporte'] ?? '',
         'tipo' => $_POST['tipo'] ?? '',
+        'modalidad' => $_POST['modalidad'] ?? '',
         'fecha_inicio' => $_POST['fecha_inicio'] ?? '',
         'fecha_fin' => $_POST['fecha_fin'] ?? '',
     ];
@@ -66,6 +67,7 @@ if ($accion === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'descripcion' => $_POST['descripcion'] ?? '',
         'deporte' => $_POST['deporte'] ?? '',
         'tipo' => $_POST['tipo'] ?? '',
+        'modalidad' => $_POST['modalidad'] ?? '',
         'fecha_inicio' => $_POST['fecha_inicio'] ?? '',
         'fecha_fin' => $_POST['fecha_fin'] ?? '',
     ];

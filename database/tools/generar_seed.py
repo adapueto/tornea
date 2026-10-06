@@ -162,7 +162,7 @@ creado_usuario = {u[0]: u[7] for u in usuarios}
 # Torneos
 # ---------------------------------------------------------------------------
 
-torneos = []               # (id, nombre, descripcion, deporte, tipo, fecha_inicio, fecha_fin, estado, created_at)
+torneos = []               # (id, nombre, descripcion, deporte, tipo, modalidad, fecha_inicio, fecha_fin, estado, created_at)
 torneo_organizadores = []  # (torneo_id, usuario_id)
 equipos = []               # (id, nombre, torneo_id, lider_id)
 equipo_miembros = []       # (equipo_id, usuario_id)
@@ -273,7 +273,7 @@ for tid in range(1, CANT_TORNEOS + 1):
     descripcion = f"Torneo de {deporte} {modalidad} con formato {formato}. Abierto a todos los niveles."
 
     organizador = random.choice(ORGANIZADORES)
-    torneos.append((tid, nombre, descripcion, deporte, tipo, inicio, fin, estado, creado))
+    torneos.append((tid, nombre, descripcion, deporte, tipo, "equipo" if de_equipo else "individual", inicio, fin, estado, creado))
     torneo_organizadores.append((tid, organizador))
     auditoria.append((organizador, "INSERT", "torneos", tid, creado))
     if random.random() < 0.3:
@@ -427,7 +427,7 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     # fecha_fin acorde a la cantidad de rondas (una por semana)
     t = torneos[-1]
-    torneos[-1] = t[:6] + (inicio + timedelta(days=7 * (cant_rondas - 1)),) + t[7:]
+    torneos[-1] = t[:7] + (inicio + timedelta(days=7 * (cant_rondas - 1)),) + t[8:]
 
     if tipo in ("liga", "suizo"):
         for p in aprobados:
@@ -475,7 +475,7 @@ USE tornea;
 
 {insert("usuarios", ["id", "nombre", "apellido", "email", "password", "fecha_nac", "perfil_publico", "created_at"], usuarios)}
 {insert("usuario_roles", ["usuario_id", "rol_id"], usuario_roles)}
-{insert("torneos", ["id", "nombre", "descripcion", "deporte", "tipo", "fecha_inicio", "fecha_fin", "estado", "created_at"], torneos)}
+{insert("torneos", ["id", "nombre", "descripcion", "deporte", "tipo", "modalidad", "fecha_inicio", "fecha_fin", "estado", "created_at"], torneos)}
 {insert("torneo_organizadores", ["torneo_id", "usuario_id"], torneo_organizadores)}
 {insert("equipos", ["id", "nombre", "torneo_id", "lider_id"], equipos)}
 {insert("equipo_miembros", ["equipo_id", "usuario_id"], equipo_miembros)}

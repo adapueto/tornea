@@ -9,13 +9,23 @@ $modelo = new Torneo();
 $id = (int) ($_GET['id'] ?? 0);
 $torneo = $modelo->buscarPorId($id);
 
-// Los borradores solo los ven sus organizadores
+// Quién mira: los organizadores y los administradores pueden gestionar el torneo
 $usuario_id = $_SESSION['usuario']['id'] ?? 0;
-if ($torneo && $torneo['estado'] === 'borrador' && !$modelo->esOrganizador($id, $usuario_id)) {
+$puede_gestionar = $torneo && $modelo->puedeGestionar($id, $usuario_id);
+// Admin que no organiza este torneo: se le aclara en el panel
+$gestiona_como_admin = $puede_gestionar && !$modelo->esOrganizador($id, $usuario_id);
+
+// Los borradores solo los ven quienes pueden gestionarlos
+if ($torneo && $torneo['estado'] === 'borrador' && !$puede_gestionar) {
     $torneo = null;
 }
 
-$es_organizador = $torneo && $modelo->esOrganizador($id, $usuario_id);
+// Un borrador no aparece en el listado público: el organizador vuelve a "Mis torneos"
+if ($torneo && $torneo['estado'] === 'borrador' && !$gestiona_como_admin) {
+    $volver = ['url' => '/tornea/app/views/perfil.php', 'texto' => 'Volver a mis torneos'];
+} else {
+    $volver = ['url' => '/tornea/app/views/torneos.php', 'texto' => 'Volver a torneos'];
+}
 
 if (!$torneo) {
     http_response_code(404);
@@ -24,8 +34,8 @@ if (!$torneo) {
     $participantes = $modelo->listarParticipantes($id);
     $rondas = $modelo->listarRondas($id);
 
-    $es_por_equipos = in_array('equipo', array_column($participantes, 'tipo'), true);
-    $modalidad = !$participantes ? 'A definir' : ($es_por_equipos ? 'Por equipos' : 'Individual');
+    $es_por_equipos = $torneo['modalidad'] === 'equipo';
+    $modalidad = $es_por_equipos ? 'Por equipos' : 'Individual';
     $prefijo_ronda = $torneo['tipo'] === 'liga' ? 'Fecha' : 'Ronda';
 
     $mensajes = [
@@ -38,8 +48,8 @@ if (!$torneo) {
 
     // Qué puede hacer el organizador en cada etapa
     $ayudas = [
-        'borrador' => 'Solo vos ves este torneo. Revisá los datos y publicalo para abrir la inscripción.',
-        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte y el tipo ya no se pueden cambiar.',
+        'borrador' => 'Este torneo todavía no es público. Revisá los datos y publicalo para abrir la inscripción.',
+        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar.',
         'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar.',
         'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
     ];
@@ -100,7 +110,7 @@ if (!$torneo) {
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=4" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=5" />
 </head>
 <body>
 
@@ -130,7 +140,7 @@ if (!$torneo) {
   <main>
     <section class="torneo-detalle-hero">
       <div class="container">
-        <a href="/tornea/app/views/torneos.php" class="volver-link">← Volver a torneos</a>
+        <a href="<?= $volver['url'] ?>" class="volver-link">← <?= $volver['texto'] ?></a>
 
         <?php if (!$torneo): ?>
           <h1 class="torneo-detalle-nombre">Torneo no encontrado</h1>
@@ -159,8 +169,8 @@ if (!$torneo) {
 
     <?php if ($torneo): ?>
 
-      <?php if ($es_organizador): ?>
-        <!-- ===== Panel de gestión: solo lo ve un organizador del torneo (RF-07) ===== -->
+      <?php if ($puede_gestionar): ?>
+        <!-- ===== Panel de gestión: solo lo ven sus organizadores y los administradores (RF-07) ===== -->
         <section class="gestion-section">
           <div class="container">
             <div class="gestion-panel">
@@ -171,6 +181,10 @@ if (!$torneo) {
               <?php endif; ?>
               <?php if (isset($_SESSION['exito'])): ?>
                 <p style="color:green; margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
+              <?php endif; ?>
+
+              <?php if ($gestiona_como_admin): ?>
+                <p class="gestion-admin">Estás gestionando este torneo como administrador. Los cambios quedan registrados a tu nombre.</p>
               <?php endif; ?>
 
               <p class="gestion-ayuda"><?= $ayuda_gestion ?></p>

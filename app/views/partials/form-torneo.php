@@ -42,8 +42,18 @@
     </select>
   </div>
 
+  <div class="form-group">
+    <label for="modalidad">Modalidad</label>
+    <select id="modalidad" name="modalidad" required <?= !empty($bloquear_formato) ? 'disabled' : '' ?>>
+      <option value="" disabled <?= empty($form['modalidad']) ? 'selected' : '' ?>>¿Quiénes compiten?</option>
+      <?php foreach (['individual' => 'Individual (cada persona compite sola)', 'equipo' => 'Por equipos'] as $valor => $texto): ?>
+        <option value="<?= $valor ?>" <?= ($form['modalidad'] ?? '') === $valor ? 'selected' : '' ?>><?= $texto ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+
   <?php if (!empty($bloquear_formato)): ?>
-    <p class="form-ayuda">El deporte y el tipo no se pueden cambiar porque el torneo ya está publicado y la gente se anotó con ese formato.</p>
+    <p class="form-ayuda">El deporte, el tipo y la modalidad no se pueden cambiar porque el torneo ya está publicado y la gente se anotó con ese formato.</p>
   <?php endif; ?>
 
   <div class="form-grid-2">

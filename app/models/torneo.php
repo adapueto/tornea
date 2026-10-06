@@ -6,6 +6,7 @@ class Torneo {
     private $pdo;
 
     const TIPOS = ['liga', 'eliminacion', 'suizo'];
+    const MODALIDADES = ['individual', 'equipo'];
     // Misma lista que usa database/tools/generar_seed.py para los datos de prueba
     const DEPORTES = [
         'Fútbol 5', 'Fútbol 11', 'Básquet', 'Vóley', 'Handball', 'Ajedrez', 'Tenis', 'Pádel',
@@ -76,6 +77,10 @@ class Torneo {
             $errores[] = 'Seleccioná un tipo de torneo válido';
         }
 
+        if ($validar_formato && !in_array($datos['modalidad'], self::MODALIDADES, true)) {
+            $errores[] = 'Elegí si el torneo es individual o por equipos';
+        }
+
         // Con '!' las horas quedan en 0 y se comparan solo los días
         $inicio = DateTime::createFromFormat('!Y-m-d', $datos['fecha_inicio']);
         $fin = DateTime::createFromFormat('!Y-m-d', $datos['fecha_fin']);
@@ -107,14 +112,15 @@ class Torneo {
         $this->pdo->beginTransaction();
         try {
             $stmt = $this->pdo->prepare('
-                INSERT INTO torneos (nombre, descripcion, deporte, tipo, fecha_inicio, fecha_fin, estado)
-                VALUES (?, ?, ?, ?, ?, ?, \'borrador\')
+                INSERT INTO torneos (nombre, descripcion, deporte, tipo, modalidad, fecha_inicio, fecha_fin, estado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, \'borrador\')
             ');
             $stmt->execute([
                 trim($datos['nombre']),
                 trim($datos['descripcion']),
                 $datos['deporte'],
                 $datos['tipo'],
+                $datos['modalidad'],
                 $datos['fecha_inicio'],
                 $datos['fecha_fin'],
             ]);
@@ -143,7 +149,7 @@ class Torneo {
     }
 
     // Qué se puede editar según el estado: todo en borrador; en publicado solo
-    // nombre, descripción y fechas (la gente ya se anotó con ese deporte y tipo);
+    // nombre, descripción y fechas (la gente ya se anotó con ese deporte, tipo y modalidad);
     // en curso o finalizado, nada.
     public static function sePuedeEditar($torneo) {
         return in_array($torneo['estado'], ['borrador', 'publicado'], true);
@@ -155,8 +161,8 @@ class Torneo {
 
     // Modifica un torneo (RF-19, RF-21). Solo puede hacerlo un organizador.
     public function actualizar($torneo_id, $datos, $usuario_id) {
-        if (!$this->esOrganizador($torneo_id, $usuario_id)) {
-            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo puede modificarlo'];
+        if (!$this->puedeGestionar($torneo_id, $usuario_id)) {
+            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo o un administrador puede modificarlo'];
         }
 
         $torneo = $this->buscarPorId($torneo_id);
@@ -164,11 +170,12 @@ class Torneo {
             return ['exito' => false, 'mensaje' => 'Un torneo en curso o finalizado ya no se puede modificar'];
         }
 
-        // En un torneo publicado se ignora lo que llegue de deporte y tipo
+        // En un torneo publicado se ignora lo que llegue de deporte, tipo y modalidad
         $bloqueado = self::formatoBloqueado($torneo);
         if ($bloqueado) {
             $datos['deporte'] = $torneo['deporte'];
             $datos['tipo'] = $torneo['tipo'];
+            $datos['modalidad'] = $torneo['modalidad'];
         }
 
         $errores = $this->validar($datos, !$bloqueado);
@@ -180,7 +187,7 @@ class Torneo {
         try {
             $stmt = $this->pdo->prepare('
                 UPDATE torneos
-                SET nombre = ?, descripcion = ?, deporte = ?, tipo = ?, fecha_inicio = ?, fecha_fin = ?
+                SET nombre = ?, descripcion = ?, deporte = ?, tipo = ?, modalidad = ?, fecha_inicio = ?, fecha_fin = ?
                 WHERE id = ?
             ');
             $stmt->execute([
@@ -188,6 +195,7 @@ class Torneo {
                 trim($datos['descripcion']),
                 $datos['deporte'],
                 $datos['tipo'],
+                $datos['modalidad'],
                 $datos['fecha_inicio'],
                 $datos['fecha_fin'],
                 $torneo_id,
@@ -354,6 +362,24 @@ class Torneo {
         return array_values($rondas);
     }
 
+    // El rol se consulta en la base (no en la sesión) para que no se pueda falsear
+    public function esAdmin($usuario_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT 1 FROM usuario_roles ur
+            JOIN roles r ON r.id = ur.rol_id
+            WHERE ur.usuario_id = ? AND r.nombre = 'admin'
+        ");
+        $stmt->execute([$usuario_id]);
+        return (bool) $stmt->fetch();
+    }
+
+    // Puede gestionar un torneo (ver su borrador, editar, publicar, eliminar):
+    // sus organizadores y los administradores (RF-07, RNF-18). Las reglas de cada
+    // acción según el estado valen igual para todos, y la auditoría guarda quién fue.
+    public function puedeGestionar($torneo_id, $usuario_id) {
+        return $this->esOrganizador($torneo_id, $usuario_id) || $this->esAdmin($usuario_id);
+    }
+
     public function esOrganizador($torneo_id, $usuario_id) {
         $stmt = $this->pdo->prepare('SELECT 1 FROM torneo_organizadores WHERE torneo_id = ? AND usuario_id = ?');
         $stmt->execute([$torneo_id, $usuario_id]);
@@ -362,8 +388,8 @@ class Torneo {
 
     // Pasa un torneo de borrador a publicado (RF-22). Solo puede hacerlo un organizador.
     public function publicar($torneo_id, $usuario_id) {
-        if (!$this->esOrganizador($torneo_id, $usuario_id)) {
-            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo puede publicarlo'];
+        if (!$this->puedeGestionar($torneo_id, $usuario_id)) {
+            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo o un administrador puede publicarlo'];
         }
 
         $this->pdo->beginTransaction();
@@ -396,8 +422,8 @@ class Torneo {
     // Elimina un torneo (RF-20). Solo se permite mientras es borrador, porque
     // después ya puede tener inscriptos. Solo puede hacerlo un organizador.
     public function eliminar($torneo_id, $usuario_id) {
-        if (!$this->esOrganizador($torneo_id, $usuario_id)) {
-            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo puede eliminarlo'];
+        if (!$this->puedeGestionar($torneo_id, $usuario_id)) {
+            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo o un administrador puede eliminarlo'];
         }
 
         $this->pdo->beginTransaction();

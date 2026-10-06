@@ -347,3 +347,14 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Aviso cuando un administrador gestiona un torneo que no organiza */
+.gestion-admin {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--bg-light);
+}
