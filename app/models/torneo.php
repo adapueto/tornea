@@ -139,13 +139,39 @@ class Torneo {
             ');
             $stmt->execute([$usuario_id, $torneo_id]);
 
+            $nuevo_rol = $this->asignarRolOrganizador($usuario_id);
+
             $this->pdo->commit();
         } catch (PDOException $e) {
             $this->pdo->rollBack();
             return ['exito' => false, 'mensaje' => 'No se pudo crear el torneo, intentá de nuevo'];
         }
 
-        return ['exito' => true, 'mensaje' => 'Torneo creado correctamente', 'id' => $torneo_id];
+        return ['exito' => true, 'mensaje' => 'Torneo creado correctamente', 'id' => $torneo_id, 'nuevo_rol' => $nuevo_rol];
+    }
+
+    // El rol lo asigna el sistema según lo que hace cada uno (RF-06): quien crea su primer
+    // torneo pasa de participante a organizador, sin tener que pedírselo a nadie.
+    // Los administradores conservan su rol. Devuelve el rol nuevo, o null si no cambió.
+    // Se llama dentro de la transacción de crear().
+    private function asignarRolOrganizador($usuario_id) {
+        $stmt = $this->pdo->prepare("
+            UPDATE usuario_roles
+            SET rol_id = (SELECT id FROM roles WHERE nombre = 'organizador')
+            WHERE usuario_id = ? AND rol_id = (SELECT id FROM roles WHERE nombre = 'participante')
+        ");
+        $stmt->execute([$usuario_id]);
+        if ($stmt->rowCount() === 0) {
+            return null;
+        }
+
+        // usuario_id NULL: el cambio lo hizo el sistema, no una persona
+        $stmt = $this->pdo->prepare("
+            INSERT INTO auditoria (usuario_id, accion, tabla_afectada, registro_id)
+            VALUES (NULL, 'UPDATE', 'usuario_roles', ?)
+        ");
+        $stmt->execute([$usuario_id]);
+        return 'organizador';
     }
 
     // Qué se puede editar según el estado: todo en borrador; en publicado solo

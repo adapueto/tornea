@@ -35,6 +35,9 @@ class Usuario {
         ');
         $stmt->execute([$usuario_id]);
 
+        // Auditoría (RF-63): la cuenta la creó la propia persona al registrarse
+        $this->auditar($usuario_id, 'INSERT', $usuario_id);
+
         return ['exito' => true, 'mensaje' => 'Usuario registrado correctamente'];
     }
 
@@ -79,6 +82,15 @@ class Usuario {
         WHERE id = ?
     ');
     $stmt->execute([$nombre, $apellido, $email, $fecha_nac, $perfil_publico, $id]);
+    $this->auditar($id, 'UPDATE', $id);
     return ['exito' => true, 'mensaje' => 'Perfil actualizado correctamente'];
 }
+
+    private function auditar($usuario_id, $accion, $registro_id) {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO auditoria (usuario_id, accion, tabla_afectada, registro_id)
+            VALUES (?, ?, 'usuarios', ?)
+        ");
+        $stmt->execute([$usuario_id, $accion, $registro_id]);
+    }
 }

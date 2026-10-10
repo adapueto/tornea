@@ -40,6 +40,11 @@ if ($accion === 'crear' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($resultado['exito']) {
         // El torneo nuevo queda como borrador en "Mis torneos" del perfil
         $_SESSION['exito'] = $resultado['mensaje'] . '. Publicalo desde "Mis torneos" cuando esté listo.';
+        // Primer torneo: la cuenta pasó a ser organizadora y el perfil lo tiene que mostrar
+        if ($resultado['nuevo_rol']) {
+            $_SESSION['usuario']['rol'] = $resultado['nuevo_rol'];
+            $_SESSION['exito'] .= ' Desde ahora tu cuenta figura como organizador.';
+        }
         header('Location: /tornea/app/views/perfil.php');
     } else {
         $_SESSION['error'] = $resultado['mensaje'];
