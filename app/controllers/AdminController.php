@@ -63,5 +63,12 @@ if ($accion === 'eliminar_usuario') {
     volverAlPanel($admin->eliminarUsuario((int) ($_POST['usuario_id'] ?? 0), $admin_id));
 }
 
+// Habilita o deshabilita un tipo de torneo (RF-59, RF-60)
+if ($accion === 'cambiar_modulo') {
+    require_once __DIR__ . '/../models/modulo.php';
+    $_POST['volver'] = 'seccion=modulos';
+    volverAlPanel((new Modulo())->cambiar($_POST['codigo'] ?? '', ($_POST['habilitar'] ?? '') === '1', $admin_id));
+}
+
 header('Location: /tornea/app/views/admin.php');
 exit;

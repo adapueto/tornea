@@ -24,6 +24,7 @@ $secciones = [
     'resumen' => 'Resumen',
     'torneos' => 'Torneos',
     'usuarios' => 'Usuarios',
+    'modulos' => 'Módulos',
     'historial' => 'Historial de cambios',
 ];
 $seccion = isset($secciones[$_GET['seccion'] ?? '']) ? $_GET['seccion'] : 'resumen';
@@ -41,6 +42,8 @@ if ($seccion === 'resumen') {
     $usuarios = $modelo->listarUsuarios($filtros, $pagina);
     $form = $_SESSION['form_usuario'] ?? [];
     unset($_SESSION['form_usuario']);
+} elseif ($seccion === 'modulos') {
+    $modulos = (new Modulo())->listar();
 } else {
     $filtros = [
         'accion' => $_GET['accion'] ?? '', 'tabla' => $_GET['tabla'] ?? '', 'usuario' => $_GET['usuario'] ?? '',
@@ -72,6 +75,7 @@ $nombres_tabla = [
     'torneos' => 'Torneo', 'torneo_organizadores' => 'Organizador de torneo', 'participantes' => 'Inscripción',
     'rondas' => 'Ronda', 'resultados' => 'Resultado', 'equipos' => 'Equipo', 'equipo_miembros' => 'Integrante de equipo',
     'invitaciones' => 'Invitación a equipo', 'usuarios' => 'Cuenta de usuario', 'usuario_roles' => 'Rol de usuario',
+    'modulos' => 'Módulo de competencia',
 ];
 $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => 'Suizo'];
 ?>
@@ -88,7 +92,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=8" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/admin.css?v=2" />
+  <link rel="stylesheet" href="/tornea/css/admin.css?v=3" />
 </head>
 <body>
 
@@ -343,6 +347,36 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
             <?php endif; ?>
           </div>
           <?php include __DIR__ . '/partials/paginacion.php'; ?>
+
+        <?php elseif ($seccion === 'modulos'): ?>
+          <!-- ===== Módulos de competencia (RF-59, RF-60) ===== -->
+          <p class="gestion-ayuda admin-total">
+            Cada tipo de torneo es un módulo. Si deshabilitás uno, nadie puede crear torneos nuevos de ese tipo;
+            los que ya existen siguen funcionando hasta terminar. Siempre tiene que quedar al menos uno habilitado.
+          </p>
+
+          <div class="admin-modulos">
+            <?php foreach ($modulos as $m): ?>
+              <div class="gestion-panel admin-modulo<?= $m['habilitado'] ? '' : ' admin-modulo-off' ?>">
+                <div class="admin-modulo-top">
+                  <h2 class="gestion-subtitulo"><?= e($m['nombre']) ?></h2>
+                  <span class="admin-accion <?= $m['habilitado'] ? 'admin-accion-insert' : 'admin-accion-delete' ?>">
+                    <?= $m['habilitado'] ? 'Habilitado' : 'Deshabilitado' ?>
+                  </span>
+                </div>
+                <p class="gestion-ayuda"><?= e($m['descripcion']) ?></p>
+                <p class="admin-sub"><?= (int) $m['torneos'] ?> torneos de este tipo · <?= (int) $m['activos'] ?> publicados o en curso</p>
+                <form action="/tornea/app/controllers/AdminController.php?accion=cambiar_modulo" method="post"
+                      <?= $m['habilitado'] ? 'onsubmit="return confirm(\'¿Deshabilitar ' . e(addslashes($m['nombre'])) . '? No se van a poder crear torneos nuevos de este tipo.\');"' : '' ?>>
+                  <input type="hidden" name="codigo" value="<?= e($m['codigo']) ?>" />
+                  <input type="hidden" name="habilitar" value="<?= $m['habilitado'] ? '0' : '1' ?>" />
+                  <button type="submit" class="btn <?= $m['habilitado'] ? 'btn-peligro' : 'btn-gradient' ?>">
+                    <?= $m['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>
+                  </button>
+                </form>
+              </div>
+            <?php endforeach; ?>
+          </div>
 
         <?php else: ?>
           <!-- ===== Historial de cambios (RF-63 a RF-66) ===== -->

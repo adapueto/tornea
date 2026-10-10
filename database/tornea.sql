@@ -172,7 +172,27 @@ CREATE TABLE auditoria (
 );
 
 -- =============================================
+-- Módulos de competencia (RF-59, RF-60)
+-- Cada tipo de torneo es un módulo que el administrador puede deshabilitar:
+-- deshabilitado, no se pueden crear torneos nuevos de ese tipo (los que ya
+-- existen siguen funcionando). codigo coincide con torneos.tipo.
+-- =============================================
+
+CREATE TABLE modulos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  codigo VARCHAR(30) NOT NULL UNIQUE,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion VARCHAR(255),
+  habilitado TINYINT(1) NOT NULL DEFAULT 1
+);
+
+-- =============================================
 -- Datos iniciales
 -- =============================================
 
 INSERT INTO roles (nombre) VALUES ('admin'), ('organizador'), ('participante');
+
+INSERT INTO modulos (codigo, nombre, descripcion) VALUES
+  ('liga', 'Liga', 'Todos contra todos, con tabla de posiciones.'),
+  ('eliminacion', 'Eliminación directa', 'Llave en la que quien pierde queda afuera, hasta la final.'),
+  ('suizo', 'Sistema suizo', 'Rondas entre participantes con puntajes parecidos, sin repetir rival.');

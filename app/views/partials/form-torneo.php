@@ -36,10 +36,20 @@
     <label for="tipo">Tipo de torneo</label>
     <select id="tipo" name="tipo" required <?= !empty($bloquear_formato) ? 'disabled' : '' ?>>
       <option value="" disabled <?= empty($form['tipo']) ? 'selected' : '' ?>>Seleccioná un tipo</option>
+      <?php
+        // Solo los tipos habilitados por el administrador (RF-59, RF-60), más el que ya
+        // tenía el torneo si se está editando
+        $tipos_habilitados = (new Modulo())->codigosHabilitados();
+      ?>
       <?php foreach (['liga' => 'Liga', 'eliminacion' => 'Eliminación directa', 'suizo' => 'Sistema suizo'] as $valor => $texto): ?>
-        <option value="<?= $valor ?>" <?= ($form['tipo'] ?? '') === $valor ? 'selected' : '' ?>><?= $texto ?></option>
+        <?php if (in_array($valor, $tipos_habilitados, true) || ($form['tipo'] ?? '') === $valor): ?>
+          <option value="<?= $valor ?>" <?= ($form['tipo'] ?? '') === $valor ? 'selected' : '' ?>><?= $texto ?></option>
+        <?php endif; ?>
       <?php endforeach; ?>
     </select>
+    <?php if (count($tipos_habilitados) < count(Torneo::TIPOS) && empty($bloquear_formato)): ?>
+      <p class="form-ayuda">Algunos tipos de torneo están deshabilitados por el administrador.</p>
+    <?php endif; ?>
   </div>
 
   <div class="form-group">

@@ -316,3 +316,39 @@ td > .admin-sub:not(:first-child) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ===== Módulos de competencia ===== */
+
+.admin-modulos {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.admin-modulo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top-color: var(--green);
+}
+
+.admin-modulo-off {
+  border-top-color: var(--red);
+}
+
+.admin-modulo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-modulo form {
+  margin-top: auto;
+}
+
+@media (min-width: 768px) {
+  .admin-modulos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
