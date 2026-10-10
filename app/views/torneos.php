@@ -3,7 +3,14 @@ session_start();
 require_once __DIR__ . '/../models/torneo.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
-$torneos = (new Torneo())->listarPublicos();
+// Búsqueda y filtros (llegan también desde el buscador de la página principal)
+$filtros = [
+    'buscar' => mb_substr(trim($_GET['buscar'] ?? ''), 0, 100),
+    'tipo' => $_GET['tipo'] ?? '',
+    'estado' => $_GET['estado'] ?? '',
+];
+$filtrando = $filtros['buscar'] !== '' || $filtros['tipo'] !== '' || $filtros['estado'] !== '';
+$torneos = (new Torneo())->listarPublicos($filtros);
 ?>
 
 <!DOCTYPE html>
@@ -15,8 +22,8 @@ $torneos = (new Torneo())->listarPublicos();
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css?v=4" />
-  <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=5" />
+  <link rel="stylesheet" href="/tornea/css/torneos.css?v=4" />
 </head>
 <body>
 
@@ -27,6 +34,37 @@ $torneos = (new Torneo())->listarPublicos();
       <div class="container">
         <h1 class="torneos-title">Torneos publicados</h1>
         <p class="torneos-subtitle">Explorá los torneos activos y próximos de cualquier deporte.</p>
+
+        <form class="torneos-buscador" method="get" role="search">
+          <div class="search-bar">
+            <button type="submit" class="search-icon" aria-label="Buscar torneos">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            </button>
+            <input type="search" name="buscar" class="search-placeholder" maxlength="100" value="<?= e($filtros['buscar']) ?>"
+                   placeholder="Nombre, lugar o deporte..." aria-label="Buscar torneos" />
+          </div>
+          <div class="torneos-filtros">
+            <select name="tipo" aria-label="Tipo de torneo" onchange="this.form.submit()">
+              <option value="">Todos los tipos</option>
+              <?php foreach (Torneo::TIPOS as $tipo): ?>
+                <option value="<?= $tipo ?>"<?= $filtros['tipo'] === $tipo ? ' selected' : '' ?>><?= etiquetaTipo($tipo) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <select name="estado" aria-label="Estado" onchange="this.form.submit()">
+              <option value="">Todos los estados</option>
+              <?php foreach (['publicado' => 'Inscripción abierta', 'en_curso' => 'En curso', 'finalizado' => 'Finalizados'] as $valor => $texto): ?>
+                <option value="<?= $valor ?>"<?= $filtros['estado'] === $valor ? ' selected' : '' ?>><?= $texto ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </form>
+
+        <?php if ($filtrando): ?>
+          <p class="torneos-resultado">
+            <?= count($torneos) === 1 ? '1 torneo encontrado' : count($torneos) . ' torneos encontrados' ?><?= $filtros['buscar'] !== '' ? ' para «' . e($filtros['buscar']) . '»' : '' ?>.
+            <a href="/tornea/app/views/torneos.php" class="form-link form-link-strong">Ver todos</a>
+          </p>
+        <?php endif; ?>
       </div>
     </section>
 
@@ -37,7 +75,9 @@ $torneos = (new Torneo())->listarPublicos();
           <?php include __DIR__ . '/partials/torneo-card.php'; ?>
         <?php endforeach; ?>
 
-        <?php if (!$torneos): ?>
+        <?php if (!$torneos && $filtrando): ?>
+          <p class="torneos-vacio">No encontramos torneos con esa búsqueda. Probá con otra palabra, por ejemplo el deporte o el barrio.</p>
+        <?php elseif (!$torneos): ?>
           <p class="torneos-vacio">Todavía no hay torneos publicados.</p>
         <?php endif; ?>
 
