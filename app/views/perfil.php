@@ -24,25 +24,13 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/perfil.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/perfil.css?v=4" />
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="/tornea/index.php" class="logo">
-        <img src="/tornea/img/logo.png" alt="Tornea" class="logo-icon" />
-        <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark">
-      </a>
-      <nav class="main-nav">
-        <a href="/tornea/index.php" class="nav-link">Inicio</a>
-        <a href="/tornea/app/views/torneos.php" class="nav-link">Torneos</a>
-        <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-outline">Cerrar Sesión</a>
-      </nav>
-    </div>
-  </header>
+  <?php $pagina_actual = 'perfil'; include __DIR__ . '/partials/header.php'; ?>
 
   <main>
     <section class="perfil-section">
@@ -51,7 +39,8 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
         <div class="perfil-card">
 
           <div class="perfil-avatar">
-            <?= strtoupper(substr($usuario['nombre'], 0, 1) . substr($usuario['apellido'], 0, 1)) ?>
+            <?php // mb_: cortar por letras y no por bytes, para iniciales con tilde (Á, É, Ñ...) ?>
+            <?= e(mb_strtoupper(mb_substr($usuario['nombre'], 0, 1) . mb_substr($usuario['apellido'], 0, 1))) ?>
           </div>
 
           <h1 class="perfil-nombre"><?= $usuario['nombre'] . ' ' . $usuario['apellido'] ?></h1>
@@ -79,6 +68,8 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
           </div>
 
           <a href="/tornea/app/views/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
+          <?php // En celular el menú oculta los links de texto: acceso directo a los equipos ?>
+          <a href="/tornea/app/views/equipos.php" class="btn btn-outline btn-lg btn-block perfil-btn-equipos">MIS EQUIPOS<?php if ($invitaciones_pendientes): ?> (<?= $invitaciones_pendientes ?>)<?php endif; ?></a>
         </div>
 
         <div class="perfil-torneos">

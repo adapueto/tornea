@@ -12,6 +12,9 @@ Reglas que respeta:
 - IDs explícitos en orden, así las FK siempre apuntan a filas existentes.
 - Un solo rol por usuario (el login actual hace JOIN con usuario_roles).
 - Deportes de equipo -> participantes tipo 'equipo'; el resto -> 'individual'.
+- Los equipos son permanentes: se arman una vez (líder + invitaciones aceptadas)
+  y se inscriben en varios torneos, sin que un jugador quede en dos equipos
+  del mismo torneo.
 - Rondas según el tipo: liga = todos contra todos, eliminación = llaves
   donde avanza el ganador, suizo = emparejamiento por puntos sin repetir rival.
 - Solo los torneos en curso o finalizados tienen rondas y resultados, y la
@@ -28,7 +31,7 @@ PASSWORD_HASH = "$2y$10$YsbA0N6WzeoXDblhXfk65.yjO2kz3D4nYno7.pi/p0ji9H2L4ncJC"  
 SALIDA = Path(__file__).resolve().parent.parent / "seed.sql"
 
 ROL_ADMIN, ROL_ORGANIZADOR, ROL_PARTICIPANTE = 1, 2, 3
-CANT_USUARIOS = 120
+CANT_USUARIOS = 150
 CANT_ORGANIZADORES = 12  # usuarios 2..13
 CANT_TORNEOS = 60
 
@@ -148,7 +151,7 @@ for uid in range(1, CANT_USUARIOS + 1):
         rol = ROL_ORGANIZADOR if uid <= CANT_ORGANIZADORES + 1 else ROL_PARTICIPANTE
     emails_usados.add(email)
     fecha_nac = date(random.randint(1975, 2008), random.randint(1, 12), random.randint(1, 28))
-    creado = momento(date(2026, 1, 10) + timedelta(days=random.randint(0, 200)))
+    creado = momento(date(2025, 6, 1) + timedelta(days=random.randint(0, 200)))
     usuarios.append((uid, nombre, apellido, email, PASSWORD_HASH, fecha_nac, random.random() < 0.85, creado))
     usuario_roles.append((uid, rol))
     auditoria.append((uid, "INSERT", "usuarios", uid, creado))
@@ -164,7 +167,7 @@ creado_usuario = {u[0]: u[7] for u in usuarios}
 
 torneos = []               # (id, nombre, descripcion, deporte, tipo, modalidad, fecha_inicio, fecha_fin, estado, created_at)
 torneo_organizadores = []  # (torneo_id, usuario_id)
-equipos = []               # (id, nombre, torneo_id, lider_id)
+equipos = []               # (id, nombre, lider_id, created_at)
 equipo_miembros = []       # (equipo_id, usuario_id)
 invitaciones = []          # (id, equipo_id, usuario_invitado_id, estado, created_at)
 participantes = []         # (id, torneo_id, usuario_id, equipo_id, tipo, estado, created_at)
@@ -244,6 +247,49 @@ def emparejar_suizo(ids, puntos, jugados):
 
 eq_id = inv_id = part_id = ronda_id = enf_id = res_id = tabla_id = 0
 
+# ---------------------------------------------------------------------------
+# Equipos permanentes: se arman en enero de 2026 y después se inscriben en
+# varios torneos. Cada jugador está en tres equipos como mucho.
+# ---------------------------------------------------------------------------
+
+CANT_EQUIPOS = 60
+# 30 nombres base y, para los clubes que tienen un segundo equipo, "... B"
+nombres_pool = NOMBRES_EQUIPO + [f"{n} B" for n in NOMBRES_EQUIPO]
+equipos_en = {u: 0 for u in PARTICIPANTES}   # en cuántos equipos está cada jugador
+miembros_de = {}                              # equipo_id -> set de usuarios
+lider_de = {}
+
+for i in range(CANT_EQUIPOS):
+    eq_id += 1
+    libres = [u for u in PARTICIPANTES if equipos_en[u] < 3]
+    random.shuffle(libres)
+    lider = libres.pop()
+    creado_eq = momento(date(2026, 1, 2) + timedelta(days=random.randint(0, 16)))
+    equipos.append((eq_id, nombres_pool[i], lider, creado_eq))
+    equipo_miembros.append((eq_id, lider))
+    miembros_de[eq_id] = {lider}
+    lider_de[eq_id] = lider
+    equipos_en[lider] += 1
+    auditoria.append((lider, "INSERT", "equipos", eq_id, creado_eq))
+
+    # Invitaciones aceptadas (los integrantes) y algunas pendientes o rechazadas
+    for estado_inv in ["aceptada"] * random.randint(3, 6) + random.choice([[], ["pendiente"], ["rechazada"], ["pendiente", "rechazada"]]):
+        if not libres:
+            break
+        invitado = libres.pop()
+        inv_id += 1
+        cuando = creado_eq + timedelta(hours=random.randint(1, 72))
+        invitaciones.append((inv_id, eq_id, invitado, estado_inv, cuando))
+        auditoria.append((lider, "INSERT", "invitaciones", inv_id, cuando))
+        if estado_inv == "aceptada":
+            equipo_miembros.append((eq_id, invitado))
+            miembros_de[eq_id].add(invitado)
+            equipos_en[invitado] += 1
+        if estado_inv != "pendiente":
+            auditoria.append((invitado, "UPDATE", "invitaciones", inv_id, cuando + timedelta(hours=random.randint(1, 20))))
+
+orden_equipos = list(miembros_de)
+
 for tid in range(1, CANT_TORNEOS + 1):
     deporte = random.choice(list(DEPORTES))
     de_equipo, prefijos = DEPORTES[deporte]
@@ -292,16 +338,23 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     inscripcion = creado + timedelta(days=2)
     candidatos = random.sample(PARTICIPANTES, k=len(PARTICIPANTES))
-    # Nombres de equipo sin repetir dentro del mismo torneo
-    nombres_equipo = random.sample(NOMBRES_EQUIPO, k=len(NOMBRES_EQUIPO))
     aprobados = []
+
+    # Torneo por equipos: equipos del pool sin jugadores en común entre sí
+    if de_equipo:
+        random.shuffle(orden_equipos)
+        en_torneo, usados = [], set()
+        for e in orden_equipos:
+            if not (miembros_de[e] & usados):
+                en_torneo.append(e)
+                usados |= miembros_de[e]
 
     def nuevo_participante(estado_insc, usuario=None, equipo=None):
         global part_id
         part_id += 1
         cuando = no_futuro(inscripcion + timedelta(hours=random.randint(1, 240)))
         participantes.append((part_id, tid, usuario, equipo, "equipo" if equipo else "individual", estado_insc, cuando))
-        quien = usuario if usuario else next(e[3] for e in equipos if e[0] == equipo)
+        quien = usuario if usuario else lider_de[equipo]
         auditoria.append((quien, "INSERT", "participantes", part_id, cuando))
         if estado_insc != "pendiente":
             auditoria.append((organizador, "UPDATE", "participantes", part_id, no_futuro(cuando + timedelta(hours=random.randint(2, 48)))))
@@ -313,27 +366,15 @@ for tid in range(1, CANT_TORNEOS + 1):
         for i in range(random.randint(1, cant // 2)):
             estados_insc[i] = "pendiente"
 
+    if de_equipo:
+        # Si no alcanzan los equipos sin jugadores en común, se inscriben menos
+        # (primero se recortan pendientes y rechazados, que van al final)
+        assert len(en_torneo) >= cant, "no alcanzan los equipos para un torneo"
+        estados_insc = estados_insc[:len(en_torneo)]
+
     for estado_insc in estados_insc:
         if de_equipo:
-            eq_id += 1
-            lider = candidatos.pop()
-            nombre_eq = nombres_equipo.pop()
-            equipos.append((eq_id, nombre_eq, tid, lider))
-            equipo_miembros.append((eq_id, lider))
-            auditoria.append((lider, "INSERT", "equipos", eq_id, no_futuro(inscripcion - timedelta(hours=49))))
-            for _ in range(random.randint(3, 5)):
-                invitado = candidatos.pop()
-                inv_id += 1
-                r = random.random()
-                estado_inv = "aceptada" if r < 0.75 else ("pendiente" if r < 0.88 else "rechazada")
-                cuando = no_futuro(inscripcion - timedelta(hours=random.randint(1, 48)))
-                invitaciones.append((inv_id, eq_id, invitado, estado_inv, cuando))
-                auditoria.append((lider, "INSERT", "invitaciones", inv_id, cuando))
-                if estado_inv == "aceptada":
-                    equipo_miembros.append((eq_id, invitado))
-                if estado_inv != "pendiente":
-                    auditoria.append((invitado, "UPDATE", "invitaciones", inv_id, no_futuro(cuando + timedelta(hours=random.randint(1, 20)))))
-            pid = nuevo_participante(estado_insc, equipo=eq_id)
+            pid = nuevo_participante(estado_insc, equipo=en_torneo.pop())
         else:
             pid = nuevo_participante(estado_insc, usuario=candidatos.pop())
         if estado_insc == "aprobado":
@@ -477,7 +518,7 @@ USE tornea;
 {insert("usuario_roles", ["usuario_id", "rol_id"], usuario_roles)}
 {insert("torneos", ["id", "nombre", "descripcion", "deporte", "tipo", "modalidad", "fecha_inicio", "fecha_fin", "estado", "created_at"], torneos)}
 {insert("torneo_organizadores", ["torneo_id", "usuario_id"], torneo_organizadores)}
-{insert("equipos", ["id", "nombre", "torneo_id", "lider_id"], equipos)}
+{insert("equipos", ["id", "nombre", "lider_id", "created_at"], equipos)}
 {insert("equipo_miembros", ["equipo_id", "usuario_id"], equipo_miembros)}
 {insert("invitaciones", ["id", "equipo_id", "usuario_invitado_id", "estado", "created_at"], invitaciones)}
 {insert("participantes", ["id", "torneo_id", "usuario_id", "equipo_id", "tipo", "estado", "created_at"], participantes)}

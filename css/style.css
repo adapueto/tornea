@@ -473,3 +473,17 @@ a {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Número de invitaciones sin responder al lado de "Equipos" en el menú */
+.nav-aviso {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--gold);
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
