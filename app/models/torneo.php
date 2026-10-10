@@ -326,12 +326,13 @@ class Torneo {
         return $stmt->fetchAll();
     }
 
-    // Rondas con sus enfrentamientos y resultados, agrupadas:
-    // [ ['numero' => 1, 'estado' => ..., 'enfrentamientos' => [...]], ... ]
+    // Rondas con sus enfrentamientos y resultados, agrupadas.
+    // Un enfrentamiento sin visitante es un pase libre (ver app/models/ronda.php).
+    // [ ['id' => 7, 'numero' => 1, 'estado' => ..., 'enfrentamientos' => [...]], ... ]
     public function listarRondas($torneo_id) {
         $stmt = $this->pdo->prepare("
             SELECT r.id AS ronda_id, r.numero, r.estado AS estado_ronda,
-                   en.id, en.estado,
+                   en.id, en.estado, en.participante_local_id, en.participante_visitante_id,
                    COALESCE(el.nombre, CONCAT(ul.nombre, ' ', ul.apellido)) AS local,
                    COALESCE(ev.nombre, CONCAT(uv.nombre, ' ', uv.apellido)) AS visitante,
                    res.score_local, res.score_visitante
@@ -353,7 +354,7 @@ class Torneo {
         foreach ($stmt->fetchAll() as $fila) {
             $n = $fila['numero'];
             if (!isset($rondas[$n])) {
-                $rondas[$n] = ['numero' => $n, 'estado' => $fila['estado_ronda'], 'enfrentamientos' => []];
+                $rondas[$n] = ['id' => $fila['ronda_id'], 'numero' => $n, 'estado' => $fila['estado_ronda'], 'enfrentamientos' => []];
             }
             if ($fila['id'] !== null) {
                 $rondas[$n]['enfrentamientos'][] = $fila;
@@ -417,6 +418,47 @@ class Torneo {
         $this->actualizarEstadosPorFecha();
 
         return ['exito' => true, 'mensaje' => 'Torneo publicado: ya aparece en el listado de torneos'];
+    }
+
+    // Arranca un torneo publicado antes de su fecha de inicio (RF-21, RF-24): se cierra la
+    // inscripción y la fecha de inicio pasa a ser hoy. Las inscripciones que siguen
+    // pendientes quedan afuera, porque solo juegan los aprobados.
+    public function iniciar($torneo_id, $usuario_id) {
+        if (!$this->puedeGestionar($torneo_id, $usuario_id)) {
+            return ['exito' => false, 'mensaje' => 'Solo un organizador del torneo o un administrador puede iniciarlo'];
+        }
+        $torneo = $this->buscarPorId($torneo_id);
+        if (!$torneo || $torneo['estado'] !== 'publicado') {
+            return ['exito' => false, 'mensaje' => 'Solo se puede iniciar un torneo publicado que todavía no empezó'];
+        }
+
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM participantes WHERE torneo_id = ? AND estado = 'aprobado'");
+        $stmt->execute([$torneo_id]);
+        if ($stmt->fetchColumn() < 2) {
+            return ['exito' => false, 'mensaje' => 'Hacen falta al menos dos participantes aprobados para iniciar el torneo'];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE torneos SET estado = 'en_curso', fecha_inicio = LEAST(fecha_inicio, CURDATE())
+                WHERE id = ? AND estado = 'publicado'
+            ");
+            $stmt->execute([$torneo_id]);
+
+            $stmt = $this->pdo->prepare("
+                INSERT INTO auditoria (usuario_id, accion, tabla_afectada, registro_id)
+                VALUES (?, 'UPDATE', 'torneos', ?)
+            ");
+            $stmt->execute([$usuario_id, $torneo_id]);
+
+            $this->pdo->commit();
+        } catch (PDOException $e) {
+            $this->pdo->rollBack();
+            return ['exito' => false, 'mensaje' => 'No se pudo iniciar el torneo, intentá de nuevo'];
+        }
+
+        return ['exito' => true, 'mensaje' => 'El torneo empezó: ya podés generar las rondas'];
     }
 
     // Elimina un torneo (RF-20). Solo se permite mientras es borrador, porque

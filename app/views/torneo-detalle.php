@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../models/torneo.php';
 require_once __DIR__ . '/../models/participante.php';
 require_once __DIR__ . '/../models/equipo.php';
+require_once __DIR__ . '/../models/ronda.php';
 require_once __DIR__ . '/../helpers/formato.php';
 
 // Detalle de un torneo: una sola vista para los tres tipos (liga, eliminación y suizo)
@@ -51,8 +52,8 @@ if (!$torneo) {
     // Qué puede hacer el organizador en cada etapa
     $ayudas = [
         'borrador' => 'Este torneo todavía no es público. Revisá los datos y publicalo para abrir la inscripción.',
-        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar.',
-        'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar.',
+        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar. El torneo empieza solo en su fecha de inicio, o antes si lo iniciás desde acá.',
+        'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar. Desde acá se arman las rondas, y los resultados se cargan en cada partido.',
         'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
     ];
     $ayuda_gestion = $ayudas[$torneo['estado']];
@@ -93,6 +94,22 @@ if (!$torneo) {
         $conteo = $modeloParticipante->contarPorEstado($id);
     }
 
+    // ===== Rondas y resultados (RF-39 a RF-47) =====
+    $modeloRonda = new Ronda();
+    // Quien gestiona carga los resultados en los partidos de la ronda que se está jugando
+    $puede_cargar = $puede_gestionar && $torneo['estado'] === 'en_curso';
+    if ($puede_cargar) {
+        $resumen_rondas = $modeloRonda->listarResumen($id);
+        $ronda_abierta = Ronda::rondaAbierta($resumen_rondas);
+        $motivo_generar = $modeloRonda->motivoNoPuedeGenerar($torneo);
+        $motivo_finalizar = $modeloRonda->motivoNoPuedeFinalizar($torneo);
+        $textos_generar = [
+            'liga' => 'Generar fixture',
+            'eliminacion' => 'Sortear la llave',
+            'suizo' => 'Generar Ronda ' . (count($resumen_rondas) + 1),
+        ];
+    }
+
     if ($torneo['tipo'] === 'eliminacion') {
         // Llave completa: las rondas ya generadas y, para las que faltan, cruces "Por definir".
         // Con n participantes hay log2(n) rondas, y cada una tiene la mitad de cruces que la anterior.
@@ -101,10 +118,12 @@ if (!$torneo) {
         for ($k = 1; $k <= max($total_rondas, count($rondas)); $k++) {
             if (isset($rondas[$k - 1])) {
                 $enfrentamientos = $rondas[$k - 1]['enfrentamientos'];
+                $estado_ronda = $rondas[$k - 1]['estado'];
             } else {
                 $enfrentamientos = array_fill(0, (int) pow(2, $total_rondas - $k), null);
+                $estado_ronda = 'pendiente';
             }
-            $llave[] = ['cruces' => count($enfrentamientos), 'enfrentamientos' => $enfrentamientos];
+            $llave[] = ['cruces' => count($enfrentamientos), 'estado' => $estado_ronda, 'enfrentamientos' => $enfrentamientos];
         }
 
         // Campeón: el ganador de la final, si ya se jugó
@@ -124,6 +143,9 @@ if (!$torneo) {
                 $posiciones[] = ['nombre' => $p['nombre'], 'pj' => 0, 'pg' => 0, 'pe' => 0, 'pp' => 0, 'puntos' => 0];
             }
         }
+
+        // Al terminar, el primero de la tabla es el campeón
+        $campeon = $torneo['estado'] === 'finalizado' ? $modeloRonda->campeon($torneo) : null;
 
         // Última ronda con algún resultado cargado (puede estar a medio jugar)
         $ultima_jugada = null;
@@ -148,7 +170,7 @@ if (!$torneo) {
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css?v=2" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=7" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=8" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/equipos.css?v=2" />
 </head>
@@ -331,6 +353,14 @@ if (!$torneo) {
                       <button type="submit" class="btn btn-peligro">Eliminar</button>
                     </form>
                   <?php endif; ?>
+
+                  <?php if ($torneo['estado'] === 'publicado' && $conteo['aprobado'] >= 2): ?>
+                    <form action="/tornea/app/controllers/TorneoController.php?accion=iniciar" method="post"
+                          onsubmit="return confirm('¿Iniciar el torneo ahora? Se cierra la inscripción y juegan los <?= (int) $conteo['aprobado'] ?> aprobados<?= $conteo['pendiente'] ? '; las inscripciones pendientes quedan afuera' : '' ?>.');">
+                      <input type="hidden" name="id" value="<?= $id ?>" />
+                      <button type="submit" class="btn btn-gradient">Iniciar torneo ahora</button>
+                    </form>
+                  <?php endif; ?>
                 </div>
               <?php endif; ?>
 
@@ -371,6 +401,69 @@ if (!$torneo) {
                   <?php endif; ?>
                 </div>
               <?php endif; ?>
+
+              <?php if ($puede_cargar): ?>
+                <div class="gestion-inscripciones">
+                  <h3 class="gestion-subtitulo">Rondas y resultados</h3>
+
+                  <?php if ($ronda_abierta): ?>
+                    <p class="gestion-ayuda">
+                      <strong><?= $prefijo_ronda ?> <?= (int) $ronda_abierta['numero'] ?> en juego:</strong>
+                      <?= (int) $ronda_abierta['cargados'] ?> de <?= (int) $ronda_abierta['partidos'] ?> resultados cargados.
+                      <?php if ($ronda_abierta['cargados'] < $ronda_abierta['partidos']): ?>
+                        Cargalos en cada partido, <a href="#ronda-<?= (int) $ronda_abierta['numero'] ?>" class="form-link form-link-strong">más abajo</a>. Cuando estén todos, vas a poder cerrarla.
+                      <?php else: ?>
+                        Revisalos y cerrá la <?= mb_strtolower($prefijo_ronda) ?>: después ya no se pueden modificar.
+                      <?php endif; ?>
+                    </p>
+                  <?php elseif (!$resumen_rondas): ?>
+                    <?php
+                      $explicaciones = [
+                          'liga' => 'Al generar el fixture se arman todas las fechas: cada participante juega una vez contra cada uno de los demás.',
+                          'eliminacion' => 'Los cruces de la primera ronda se sortean. Si la cantidad de participantes no es potencia de 2, algunos pasan directo a la segunda ronda.',
+                          'suizo' => 'La primera ronda se sortea. Desde la segunda se enfrentan participantes con puntajes parecidos, sin repetir rival.',
+                      ];
+                    ?>
+                    <p class="gestion-ayuda"><?= $explicaciones[$torneo['tipo']] ?></p>
+                  <?php elseif ($torneo['tipo'] === 'suizo'): ?>
+                    <p class="gestion-ayuda">
+                      Se jugaron <?= count($resumen_rondas) ?> rondas. Con <?= count($participantes) ?> participantes se recomiendan
+                      <?= Ronda::rondasRecomendadasSuizo(count($participantes)) ?> para que quede un ganador claro.
+                    </p>
+                  <?php endif; ?>
+
+                  <?php if ($motivo_generar && $motivo_finalizar && !$ronda_abierta): ?>
+                    <p class="gestion-ayuda"><?= e($motivo_generar) ?></p>
+                  <?php elseif (!$motivo_finalizar && $torneo['tipo'] !== 'suizo'): ?>
+                    <p class="gestion-ayuda">Ya no quedan partidos por jugar: finalizá el torneo para cerrar la competencia.</p>
+                  <?php endif; ?>
+
+                  <div class="gestion-acciones">
+                    <?php if ($ronda_abierta && $ronda_abierta['cargados'] == $ronda_abierta['partidos']): ?>
+                      <form action="/tornea/app/controllers/RondaController.php?accion=cerrar" method="post"
+                            onsubmit="return confirm('¿Cerrar la <?= $prefijo_ronda ?> <?= (int) $ronda_abierta['numero'] ?>? Después sus resultados ya no se pueden modificar.');">
+                        <input type="hidden" name="ronda_id" value="<?= (int) $ronda_abierta['id'] ?>" />
+                        <button type="submit" class="btn btn-gradient">Cerrar <?= $prefijo_ronda ?> <?= (int) $ronda_abierta['numero'] ?></button>
+                      </form>
+                    <?php endif; ?>
+
+                    <?php if (!$motivo_generar): ?>
+                      <form action="/tornea/app/controllers/RondaController.php?accion=generar" method="post">
+                        <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                        <button type="submit" class="btn btn-gradient"><?= $textos_generar[$torneo['tipo']] ?></button>
+                      </form>
+                    <?php endif; ?>
+
+                    <?php if (!$motivo_finalizar): ?>
+                      <form action="/tornea/app/controllers/RondaController.php?accion=finalizar" method="post"
+                            onsubmit="return confirm('¿Finalizar el torneo? Ya no se van a poder jugar más rondas.');">
+                        <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                        <button type="submit" class="btn <?= $torneo['tipo'] === 'suizo' ? 'btn-outline' : 'btn-gradient' ?>">Finalizar torneo</button>
+                      </form>
+                    <?php endif; ?>
+                  </div>
+                </div>
+              <?php endif; ?>
             </div>
           </div>
         </section>
@@ -394,10 +487,11 @@ if (!$torneo) {
                     <h3 class="bracket-round-title"><?= nombreRondaEliminacion($ronda['cruces']) ?></h3>
                     <div class="bracket-matches">
                       <?php $es_final = $ronda['cruces'] === 1; ?>
+                      <?php $editable = $puede_cargar && $ronda['estado'] === 'en_curso'; ?>
                       <?php foreach ($ronda['enfrentamientos'] as $en): ?>
                         <?php include __DIR__ . '/partials/match-card.php'; ?>
                       <?php endforeach; ?>
-                      <?php $es_final = false; ?>
+                      <?php $es_final = false; $editable = false; ?>
                     </div>
                   </div>
                 <?php endforeach; ?>
@@ -413,7 +507,9 @@ if (!$torneo) {
         <section class="posiciones-section">
           <div class="container">
             <h2 class="section-title"><?= $torneo['tipo'] === 'liga' ? 'Tabla de posiciones' : 'Clasificación' ?></h2>
-            <?php if ($ultima_jugada): ?>
+            <?php if ($campeon): ?>
+              <p class="section-subtitle">🏆 Campeón: <strong><?= e($campeon) ?></strong></p>
+            <?php elseif ($ultima_jugada): ?>
               <p class="section-subtitle">Con los resultados cargados hasta la <?= $prefijo_ronda ?> <?= $ultima_jugada ?>.</p>
             <?php endif; ?>
 
@@ -464,9 +560,10 @@ if (!$torneo) {
 
               <div class="calendario-fechas">
                 <?php foreach ($rondas as $ronda): ?>
-                  <div class="fecha-grupo">
+                  <div class="fecha-grupo" id="ronda-<?= (int) $ronda['numero'] ?>">
                     <h3 class="bracket-round-title"><?= etiquetaRonda($prefijo_ronda, $ronda['numero'], $ronda['estado']) ?></h3>
                     <div class="bracket-matches">
+                      <?php $editable = $puede_cargar && $ronda['estado'] === 'en_curso'; ?>
                       <?php foreach ($ronda['enfrentamientos'] as $en): ?>
                         <?php include __DIR__ . '/partials/match-card.php'; ?>
                       <?php endforeach; ?>
