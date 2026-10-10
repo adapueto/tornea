@@ -8,14 +8,13 @@ Antes de agregar o cambiar funcionalidad, revisar `docs/requerimientos.md` — e
 
 ## Estado actual
 
-En fase de **maquetado HTML/CSS semántico** (primera entrega). Todavía no hay backend, JS, ni base de datos — eso llega después según RNF-02, RNF-05, RNF-06.
-
-Páginas existentes: `index.html` (home), `login.html`, `register.html`.
+Tercera entrega: sistema completo y portable con Docker. Funcionan usuarios y roles, torneos de los tres tipos, inscripciones, equipos permanentes, rondas, resultados con tabla automática, panel de administración (reportes, usuarios, módulos, configuración e historial) y auditoría. El detalle de qué hay y cómo levantarlo está en `README.md`.
 
 ## Stack (según RNF)
 
-- HTML5 semántico, CSS3 puro (sin frameworks)
-- Próximamente: PHP + MySQL + arquitectura MVC (RNF-02, RNF-06, RNF-07)
+- PHP 8.2 + MySQL con arquitectura MVC (RNF-02, RNF-06, RNF-07): `app/models`, `app/controllers`, `app/views`
+- HTML5 semántico, CSS3 puro (sin frameworks) y JavaScript solo donde hace falta (RNF-05)
+- Docker: `php:8.2-apache` + `mysql:8.0` (RNF-28)
 
 ## Convenciones de este repo
 

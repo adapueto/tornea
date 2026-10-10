@@ -1,83 +1,77 @@
 # Tornea
 
-Proyecto final de año: una app web para gestionar torneos de **cualquier deporte** (fútbol amateur, básquet, eSports, y más). Permite crear torneos, sumar participantes y seguir los resultados desde un solo lugar.
-
-## Estado actual
-
-🚧 En construcción. Por ahora el foco está en el **maquetado (HTML + CSS) mobile-first** de todas las pantallas principales. La conexión a base de datos y la lógica funcional (login, registro, creación de torneos, etc.) se van a agregar más adelante.
+Proyecto final de año: una app web para gestionar torneos de **cualquier deporte** (fútbol amateur, básquet, vóley, ajedrez, eSports, y más). Permite crear torneos, inscribir participantes o equipos, generar las rondas, cargar resultados y seguir la tabla o las llaves desde un solo lugar.
 
 Los requerimientos completos del proyecto (RF, RNF y el modelo MER) están en [`docs/requerimientos.md`](docs/requerimientos.md).
 
-## Páginas
+## Qué se puede hacer
 
-| Página | Descripción |
+| Quién | Qué |
 | --- | --- |
-| `index.html` | Home: hero, torneos destacados y features |
-| `login.html` | Inicio de sesión |
-| `register.html` | Registro (nombre, apellido, email, contraseña) |
-| `torneos.html` | Listado completo de torneos publicados |
-| `crear-torneo.html` | Formulario para crear un torneo |
-| `perfil.html` | Vista de perfil del participante, con los torneos que publicó (datos de ejemplo) |
-| `perfil-editar.html` | Formulario para editar los datos del perfil |
-| `torneo-detalle-liga.html` | Detalle de un torneo tipo liga: tabla de posiciones y calendario/resultados |
-| `torneo-detalle-eliminacion.html` | Detalle de un torneo de eliminación directa: llaves |
-| `torneo-detalle-suizo.html` | Detalle de un torneo de sistema suizo: emparejamientos y clasificación |
+| Público | Ver los torneos publicados, buscarlos y filtrarlos; ver tablas, calendarios, resultados y llaves |
+| Participante | Registrarse, editar su perfil, inscribirse en torneos, armar equipos permanentes, invitar integrantes e inscribir el equipo en varios torneos |
+| Organizador | Crear torneos (al crear el primero, la cuenta pasa sola a organizador), editarlos, publicarlos, aprobar o rechazar inscripciones, iniciar el torneo, generar las rondas, cargar y corregir resultados, cerrar rondas y finalizar el torneo |
+| Administrador | Todo lo anterior en cualquier torneo, más el panel de administración: reportes, todos los torneos, usuarios y roles, módulos de competencia, configuración e historial de cambios |
 
-Las tres páginas `torneo-detalle-*` son una plantilla estática por **tipo** de torneo (no una por torneo individual), pensada para el momento en que exista backend: ahí se van a fusionar en una sola vista dinámica `torneo-detalle.php?id=`. Se llega a ellas desde el botón "Ver detalle" de las tarjetas de torneo en `index.html`, `torneos.html` y `perfil.html`.
+### Tipos de torneo
 
-`perfil.html` y `perfil-editar.html` todavía no están enlazadas desde el resto del sitio — eso depende de tener sesión real.
+- **Liga:** todos contra todos (método del círculo). Se arma el fixture completo y se juega una fecha por vez. Con cantidad impar, a cada uno le toca descansar una fecha.
+- **Eliminación directa:** la llave se sortea; si la cantidad no es potencia de 2, algunos pasan directo. Al cerrar cada ronda, los ganadores se cruzan solos en la siguiente, hasta la final. No hay empates.
+- **Sistema suizo:** la primera ronda se sortea; desde la segunda se enfrentan participantes con puntajes parecidos, sin repetir rival. Con cantidad impar queda uno libre, que suma una victoria.
+
+Cada resultado actualiza la tabla de posiciones o la llave automáticamente, y cada cambio queda registrado en la auditoría (quién, qué y cuándo).
 
 ## Stack
 
-- **HTML5** semántico
-- **CSS3** puro, mobile-first (sin frameworks todavía — Flexbox y Grid, con `@media (min-width: ...)` para tablet/laptop)
-- Google Fonts: `Baloo 2` (títulos), `Nunito Sans` (texto) y `Material Symbols Rounded` (íconos del hero)
-- Próximamente: JavaScript y PHP + MySQL (arquitectura MVC) para persistir torneos, usuarios y resultados
+- **PHP 8.2** con arquitectura **MVC** (modelos, controladores y vistas separados), sin frameworks
+- **MySQL 8 / MariaDB** con PDO, consultas preparadas y transacciones
+- **HTML5** semántico y **CSS3** puro, mobile-first (Flexbox y Grid)
+- **JavaScript** para el menú lateral en celulares y las confirmaciones antes de acciones que no se pueden deshacer
+- **Docker** (`php:8.2-apache` + `mysql:8.0`)
+- Google Fonts: `Baloo 2` (títulos), `Nunito Sans` (texto) y `Material Symbols Rounded` (íconos)
 
 ## Estructura del proyecto
 
 ```
 tornea/
-├── index.html                       # Home
-├── login.html                        # Inicio de sesión
-├── register.html                     # Registro
-├── torneos.html                       # Listado de torneos
-├── crear-torneo.html                  # Crear torneo
-├── perfil.html                         # Vista de perfil + torneos publicados
-├── perfil-editar.html                  # Editar perfil
-├── torneo-detalle-liga.html            # Detalle de torneo — tipo liga
-├── torneo-detalle-eliminacion.html     # Detalle de torneo — eliminación directa
-├── torneo-detalle-suizo.html           # Detalle de torneo — sistema suizo
-├── css/
-│   ├── style.css          # Estilos base (header, hero, features, footer, íconos)
-│   ├── auth.css            # Login, registro, crear torneo, editar perfil
-│   ├── torneos.css         # Torneos destacados y listado de torneos (componente .torneo-card)
-│   ├── torneo-detalle.css  # Llaves, tabla de posiciones y calendario de las páginas de detalle
-│   └── perfil.css          # Vista de perfil
+├── index.php                      # Página principal
+├── app/
+│   ├── controllers/               # Reciben los formularios (POST) y redirigen con un mensaje
+│   │   ├── UsuarioController.php  #   registro, login, logout, perfil
+│   │   ├── TorneoController.php   #   crear, editar, publicar, iniciar, eliminar
+│   │   ├── InscripcionController.php  # inscribirse, cancelar, aprobar, rechazar
+│   │   ├── EquipoController.php   #   equipos, invitaciones e inscripción de equipos
+│   │   ├── RondaController.php    #   generar rondas, cargar resultados, cerrar ronda, finalizar
+│   │   └── AdminController.php    #   usuarios, roles, módulos y configuración
+│   ├── models/                    # Acceso a la base y reglas del negocio
+│   │   ├── usuario.php, torneo.php, participante.php, equipo.php
+│   │   ├── ronda.php              #   fixture, llaves, emparejamiento suizo y tabla de posiciones
+│   │   ├── admin.php              #   reportes, usuarios e historial de cambios
+│   │   ├── modulo.php             #   tipos de torneo habilitados
+│   │   └── configuracion.php      #   puntos por victoria/empate y mínimo de participantes
+│   ├── views/                     # Páginas
+│   │   ├── torneos.php            #   listado con buscador y filtros
+│   │   ├── torneo-detalle.php     #   detalle de un torneo (una vista para los tres tipos)
+│   │   ├── crear-torneo.php, editar-torneo.php
+│   │   ├── equipos.php, equipo.php
+│   │   ├── perfil.php, perfil-editar.php, login.php, register.php
+│   │   ├── admin.php              #   panel de administración
+│   │   └── partials/              #   header, footer, tarjetas y formularios reutilizables
+│   └── helpers/formato.php        # Funciones para mostrar datos (escape, fechas, etiquetas)
+├── config/database.php            # Conexión PDO (lee DB_HOST, DB_NAME, DB_USER, DB_PASS)
+├── css/                           # Un archivo por sección del sitio
+├── js/menu.js                     # Menú lateral para celulares
 ├── img/
-│   └── logo.png
-├── docs/
-│   └── requerimientos.md  # RF, RNF y resumen del MER
-├── CLAUDE.md               # Contexto del proyecto para Claude Code
-├── README.md
-└── .claude/
-    └── skills/
-        └── git-sync/       # Skill para guardar/subir cambios a GitHub
-```
-
-## Cómo verla localmente
-
-Es HTML/CSS estático, no necesita instalación. Alcanza con abrir `index.html` en el navegador, o levantar un servidor simple:
-
-```bash
-# opción 1: abrir directo
-start index.html          # Windows
-open index.html           # macOS
-
-# opción 2: servidor local (recomendado para evitar problemas de rutas)
-npx serve .
-# o
-python -m http.server 5500
+├── database/
+│   ├── tornea.sql                 # Estructura (DDL) y datos fijos (roles, módulos, configuración)
+│   ├── seed.sql                   # Datos de prueba
+│   ├── tools/generar_seed.py      # Genera seed.sql
+│   ├── dcl.example.sql            # Usuarios y permisos de MySQL (instalación local)
+│   └── docker/02-dcl.sh           # Usuarios y permisos de MySQL (Docker)
+├── docker/php.ini
+├── Dockerfile
+├── docker-compose.yml
+└── docs/requerimientos.md         # RF, RNF y resumen del MER
 ```
 
 ## Cómo levantarlo con Docker
@@ -99,28 +93,50 @@ La primera vez (volumen vacío) MySQL ejecuta solo, en orden, los scripts de `/d
 
 La app se conecta con `tornea_app` (solo `SELECT/INSERT/UPDATE/DELETE`). Las contraseñas se pueden cambiar copiando `.env.example` a `.env`.
 
-**Cuentas de prueba** (contraseña `tornea123` para todas): `admin@tornea.test` (admin), usuarios 2 a 13 son organizadores y el resto participantes. Los emails se pueden ver con `SELECT id, email FROM usuarios;`.
-
 Para borrar la base y volver a cargar todo desde cero (por ejemplo, después de cambiar `tornea.sql` o `seed.sql`):
 
 ```bash
 docker compose down -v
 ```
 
+## Cómo levantarlo con XAMPP (sin Docker)
+
+1. Copiar o enlazar la carpeta del proyecto en `C:\xampp\htdocs\tornea` (las rutas del sitio empiezan con `/tornea/`).
+2. Iniciar Apache y MySQL desde el panel de XAMPP.
+3. Cargar la base desde la carpeta del proyecto:
+
+   ```bash
+   C:/xampp/mysql/bin/mysql.exe -uroot -e "DROP DATABASE IF EXISTS tornea"
+   ```
+
+   ```bash
+   C:/xampp/mysql/bin/mysql.exe -uroot --default-character-set=utf8mb4 < database/tornea.sql
+   ```
+
+   ```bash
+   C:/xampp/mysql/bin/mysql.exe -uroot --default-character-set=utf8mb4 tornea < database/seed.sql
+   ```
+
+4. Entrar a <http://localhost/tornea/>.
+
+Sin variables de entorno, la app se conecta a `localhost` con el usuario `root` sin contraseña (lo que trae XAMPP). Cada vez que cambia `tornea.sql` hay que repetir el paso 3.
+
+## Cuentas de prueba
+
+Todas tienen la contraseña `tornea123`:
+
+- `admin@tornea.test` — administrador
+- usuarios 2 a 13 — organizadores
+- el resto — participantes
+
+Los emails se pueden ver con `SELECT id, email FROM usuarios;`.
+
 ### Datos de prueba
 
 `database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 150 usuarios, 60 torneos de los tres tipos y en todos los estados, 60 equipos permanentes (cada uno inscripto en varios torneos, sin que un jugador quede en dos equipos del mismo torneo) con sus invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo los catálogos `roles`, `modulos` y `configuracion` (3 filas cada uno por definición: los tres roles, los tres tipos de torneo y los tres valores configurables, que se cargan en `tornea.sql`).
 
-## Próximos pasos
-
-- [x] Maquetar vistas de detalle de torneo (calendario, resultados, tabla de posiciones, llaves)
-- [ ] Definir los deportes que va a soportar la plataforma
-- [ ] Sumar interactividad con JavaScript (estado de sesión, guardado de cambios de perfil, etc.)
-- [ ] Conectar a una base de datos (torneos, usuarios, resultados) con PHP + MySQL — ahí las 3 plantillas `torneo-detalle-*` se fusionan en una sola vista dinámica
-- [ ] Deploy
-
 ## Git
 
-El repo está conectado a GitHub (`adapueto/tornea`). El flujo de trabajo es: un issue por cada tarea, una rama `<número-de-issue>-<slug>` desde `main`, y merge vía Pull Request — no se pushea directo a `main`.
+El repo está conectado a GitHub (`adapueto/tornea`). Cada tarea se trabaja en su propia rama y se integra a `main` vía Pull Request — no se pushea directo a `main`. Los mensajes de commit van en español y en modo imperativo.
 
 Para el día a día de guardar avances, está la skill `/git-sync` (ver `.claude/skills/git-sync/SKILL.md`).
