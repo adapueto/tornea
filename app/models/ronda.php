@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/torneo.php';
+require_once __DIR__ . '/configuracion.php';
 
 // Rondas, enfrentamientos, resultados y tabla de posiciones (RF-28 a RF-47).
 //
@@ -15,9 +16,9 @@ require_once __DIR__ . '/torneo.php';
 //
 // Un enfrentamiento sin visitante es un "libre": ese participante no juega en la ronda.
 // En liga descansa, en eliminación pasa directo y en suizo suma una victoria.
+// Los puntos por victoria y por empate, y el mínimo de participantes, los define el
+// administrador en la configuración (RF-62).
 class Ronda {
-    const PUNTOS_VICTORIA = 3;
-    const PUNTOS_EMPATE = 1;
     const SCORE_MAXIMO = 999;
 
     private $pdo;
@@ -73,11 +74,13 @@ class Ronda {
             return 'Las rondas se generan cuando el torneo está en curso.';
         }
         $cantidad = count($this->idsAprobados($torneo['id']));
-        if ($cantidad < 2) {
-            return 'Hacen falta al menos dos participantes aprobados para armar los enfrentamientos.';
+        $resumen = $this->listarResumen($torneo['id']);
+        // El mínimo se exige para arrancar: si el admin lo sube con el torneo empezado, el torneo sigue
+        $minimo = $resumen ? 2 : Configuracion::valor('minimo_participantes');
+        if ($cantidad < $minimo) {
+            return "Hacen falta al menos $minimo participantes aprobados para armar los enfrentamientos.";
         }
 
-        $resumen = $this->listarResumen($torneo['id']);
         if ($resumen && $torneo['tipo'] === 'liga') {
             return 'El fixture de la liga ya está generado.';
         }
@@ -553,6 +556,9 @@ class Ronda {
 
     // PJ, PG, PP y puntos de cada participante aprobado, calculados desde los resultados
     private function calcularEstadisticas($torneo) {
+        $config = (new Configuracion())->todos();
+        $victoria = $config['puntos_victoria'];
+        $empate = $config['puntos_empate'];
         $stats = [];
         foreach ($this->idsAprobados($torneo['id']) as $id) {
             $stats[$id] = ['pj' => 0, 'pg' => 0, 'pp' => 0, 'puntos' => 0];
@@ -579,7 +585,7 @@ class Ronda {
                 if ($torneo['tipo'] === 'suizo') {
                     $stats[$l]['pj']++;
                     $stats[$l]['pg']++;
-                    $stats[$l]['puntos'] += self::PUNTOS_VICTORIA;
+                    $stats[$l]['puntos'] += $victoria;
                 }
                 continue;
             }
@@ -591,16 +597,34 @@ class Ronda {
             $stats[$l]['pj']++;
             $stats[$v]['pj']++;
             if ($a === $b) {
-                $stats[$l]['puntos'] += self::PUNTOS_EMPATE;
-                $stats[$v]['puntos'] += self::PUNTOS_EMPATE;
+                $stats[$l]['puntos'] += $empate;
+                $stats[$v]['puntos'] += $empate;
             } else {
                 [$gana, $pierde] = $a > $b ? [$l, $v] : [$v, $l];
                 $stats[$gana]['pg']++;
-                $stats[$gana]['puntos'] += self::PUNTOS_VICTORIA;
+                $stats[$gana]['puntos'] += $victoria;
                 $stats[$pierde]['pp']++;
             }
         }
         return $stats;
+    }
+
+    // Cuando el admin cambia los puntos, las tablas de los torneos en juego se rearman
+    // con los valores nuevos, así todos los partidos de un mismo torneo cuentan igual.
+    // Los torneos finalizados conservan su tabla tal como terminó. Devuelve cuántos se recalcularon.
+    public function recalcularTorneosEnCurso() {
+        $torneos = $this->pdo->query("SELECT * FROM torneos WHERE estado = 'en_curso' AND tipo IN ('liga', 'suizo')")->fetchAll();
+        $this->pdo->beginTransaction();
+        try {
+            foreach ($torneos as $torneo) {
+                $this->recalcularTabla($torneo);
+            }
+            $this->pdo->commit();
+        } catch (PDOException $e) {
+            $this->pdo->rollBack();
+            return 0;
+        }
+        return count($torneos);
     }
 
     // Rearma la tabla del torneo desde cero. La eliminación directa no tiene tabla.
