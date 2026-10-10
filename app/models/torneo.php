@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/modulo.php';
+require_once __DIR__ . '/configuracion.php';
 
 class Torneo {
     private $pdo;
@@ -465,8 +466,9 @@ class Torneo {
 
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM participantes WHERE torneo_id = ? AND estado = 'aprobado'");
         $stmt->execute([$torneo_id]);
-        if ($stmt->fetchColumn() < 2) {
-            return ['exito' => false, 'mensaje' => 'Hacen falta al menos dos participantes aprobados para iniciar el torneo'];
+        $minimo = Configuracion::valor('minimo_participantes');
+        if ($stmt->fetchColumn() < $minimo) {
+            return ['exito' => false, 'mensaje' => "Hacen falta al menos $minimo participantes aprobados para iniciar el torneo"];
         }
 
         $this->pdo->beginTransaction();

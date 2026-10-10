@@ -52,7 +52,7 @@ if (!$torneo) {
     // Qué puede hacer el organizador en cada etapa
     $ayudas = [
         'borrador' => 'Este torneo todavía no es público. Revisá los datos y publicalo para abrir la inscripción.',
-        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar. El torneo empieza solo en su fecha de inicio, o antes si lo iniciás desde acá.',
+        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar. El torneo empieza solo en su fecha de inicio, o antes si lo iniciás desde acá cuando tenga al menos ' . Configuracion::valor('minimo_participantes') . ' inscriptos aprobados.',
         'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar. Desde acá se arman las rondas, y los resultados se cargan en cada partido.',
         'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
     ];
@@ -354,7 +354,7 @@ if (!$torneo) {
                     </form>
                   <?php endif; ?>
 
-                  <?php if ($torneo['estado'] === 'publicado' && $conteo['aprobado'] >= 2): ?>
+                  <?php if ($torneo['estado'] === 'publicado' && $conteo['aprobado'] >= Configuracion::valor('minimo_participantes')): ?>
                     <form action="/tornea/app/controllers/TorneoController.php?accion=iniciar" method="post"
                           onsubmit="return confirm('¿Iniciar el torneo ahora? Se cierra la inscripción y juegan los <?= (int) $conteo['aprobado'] ?> aprobados<?= $conteo['pendiente'] ? '; las inscripciones pendientes quedan afuera' : '' ?>.');">
                       <input type="hidden" name="id" value="<?= $id ?>" />

@@ -187,6 +187,18 @@ CREATE TABLE modulos (
 );
 
 -- =============================================
+-- Configuración general (RF-62)
+-- Valores que el administrador ajusta desde el panel. Se guardan como texto y
+-- cada uno se valida en app/models/configuracion.php.
+-- =============================================
+
+CREATE TABLE configuracion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  clave VARCHAR(50) NOT NULL UNIQUE,
+  valor VARCHAR(255) NOT NULL
+);
+
+-- =============================================
 -- Datos iniciales
 -- =============================================
 
@@ -196,3 +208,8 @@ INSERT INTO modulos (codigo, nombre, descripcion) VALUES
   ('liga', 'Liga', 'Todos contra todos, con tabla de posiciones.'),
   ('eliminacion', 'Eliminación directa', 'Llave en la que quien pierde queda afuera, hasta la final.'),
   ('suizo', 'Sistema suizo', 'Rondas entre participantes con puntajes parecidos, sin repetir rival.');
+
+INSERT INTO configuracion (clave, valor) VALUES
+  ('puntos_victoria', '3'),
+  ('puntos_empate', '1'),
+  ('minimo_participantes', '2');

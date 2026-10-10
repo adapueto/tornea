@@ -25,6 +25,7 @@ $secciones = [
     'torneos' => 'Torneos',
     'usuarios' => 'Usuarios',
     'modulos' => 'Módulos',
+    'configuracion' => 'Configuración',
     'historial' => 'Historial de cambios',
 ];
 $seccion = isset($secciones[$_GET['seccion'] ?? '']) ? $_GET['seccion'] : 'resumen';
@@ -44,6 +45,8 @@ if ($seccion === 'resumen') {
     unset($_SESSION['form_usuario']);
 } elseif ($seccion === 'modulos') {
     $modulos = (new Modulo())->listar();
+} elseif ($seccion === 'configuracion') {
+    $config = (new Configuracion())->todos();
 } else {
     $filtros = [
         'accion' => $_GET['accion'] ?? '', 'tabla' => $_GET['tabla'] ?? '', 'usuario' => $_GET['usuario'] ?? '',
@@ -75,7 +78,7 @@ $nombres_tabla = [
     'torneos' => 'Torneo', 'torneo_organizadores' => 'Organizador de torneo', 'participantes' => 'Inscripción',
     'rondas' => 'Ronda', 'resultados' => 'Resultado', 'equipos' => 'Equipo', 'equipo_miembros' => 'Integrante de equipo',
     'invitaciones' => 'Invitación a equipo', 'usuarios' => 'Cuenta de usuario', 'usuario_roles' => 'Rol de usuario',
-    'modulos' => 'Módulo de competencia',
+    'modulos' => 'Módulo de competencia', 'configuracion' => 'Configuración',
 ];
 $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => 'Suizo'];
 ?>
@@ -92,7 +95,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=8" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/admin.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/admin.css?v=4" />
 </head>
 <body>
 
@@ -376,6 +379,27 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
                 </form>
               </div>
             <?php endforeach; ?>
+          </div>
+
+        <?php elseif ($seccion === 'configuracion'): ?>
+          <!-- ===== Configuración general (RF-62) ===== -->
+          <div class="gestion-panel admin-config">
+            <h2 class="gestion-subtitulo">Reglas de los torneos</h2>
+            <p class="gestion-ayuda">
+              Si cambiás los puntos, las tablas de los torneos en curso se recalculan con los valores nuevos.
+              Los torneos finalizados quedan como terminaron.
+            </p>
+            <form class="auth-form admin-form" action="/tornea/app/controllers/AdminController.php?accion=guardar_configuracion" method="post">
+              <?php foreach (Configuracion::VALORES as $clave => $def): ?>
+                <div class="form-group">
+                  <label for="c-<?= $clave ?>"><?= $def['nombre'] ?></label>
+                  <input type="number" id="c-<?= $clave ?>" name="<?= $clave ?>" required
+                         min="<?= $def['min'] ?>" max="<?= $def['max'] ?>" value="<?= (int) $config[$clave] ?>" />
+                  <p class="form-ayuda"><?= $def['ayuda'] ?> Por defecto: <?= $def['defecto'] ?>.</p>
+                </div>
+              <?php endforeach; ?>
+              <button type="submit" class="btn btn-gradient">Guardar configuración</button>
+            </form>
           </div>
 
         <?php else: ?>

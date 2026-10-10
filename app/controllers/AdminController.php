@@ -70,5 +70,18 @@ if ($accion === 'cambiar_modulo') {
     volverAlPanel((new Modulo())->cambiar($_POST['codigo'] ?? '', ($_POST['habilitar'] ?? '') === '1', $admin_id));
 }
 
+// Configuración general (RF-62)
+if ($accion === 'guardar_configuracion') {
+    require_once __DIR__ . '/../models/configuracion.php';
+    require_once __DIR__ . '/../models/ronda.php';
+    $resultado = (new Configuracion())->guardar($_POST, $admin_id);
+    if ($resultado['exito'] && $resultado['cambiaron_puntos']) {
+        $cantidad = (new Ronda())->recalcularTorneosEnCurso();
+        $resultado['mensaje'] .= ". Se recalcularon las tablas de $cantidad torneos en curso; los finalizados quedan como terminaron.";
+    }
+    $_POST['volver'] = 'seccion=configuracion';
+    volverAlPanel($resultado);
+}
+
 header('Location: /tornea/app/views/admin.php');
 exit;
