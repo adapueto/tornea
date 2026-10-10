@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/modulo.php';
 
 class Torneo {
     private $pdo;
@@ -60,7 +61,9 @@ class Torneo {
     // Devuelve un array con los errores encontrados (vacío si todo está bien).
     // Con $validar_formato = false no se revisan deporte y tipo (torneo publicado:
     // esos datos no se pueden cambiar y vienen de la base).
-    public function validar($datos, $validar_formato = true) {
+    // $tipo_actual: al editar, el tipo que ya tenía el torneo. Un borrador puede conservar
+    // un tipo deshabilitado, pero ningún torneo puede pasar a uno (RF-60).
+    public function validar($datos, $validar_formato = true, $tipo_actual = null) {
         $errores = [];
 
         if (trim($datos['nombre']) === '') {
@@ -75,6 +78,8 @@ class Torneo {
 
         if ($validar_formato && !in_array($datos['tipo'], self::TIPOS, true)) {
             $errores[] = 'Seleccioná un tipo de torneo válido';
+        } elseif ($validar_formato && $datos['tipo'] !== $tipo_actual && !(new Modulo())->estaHabilitado($datos['tipo'])) {
+            $errores[] = 'Ese tipo de torneo está deshabilitado por el administrador: elegí otro';
         }
 
         if ($validar_formato && !in_array($datos['modalidad'], self::MODALIDADES, true)) {
@@ -204,7 +209,7 @@ class Torneo {
             $datos['modalidad'] = $torneo['modalidad'];
         }
 
-        $errores = $this->validar($datos, !$bloqueado);
+        $errores = $this->validar($datos, !$bloqueado, $torneo['tipo']);
         if ($errores) {
             return ['exito' => false, 'mensaje' => implode('. ', $errores)];
         }
