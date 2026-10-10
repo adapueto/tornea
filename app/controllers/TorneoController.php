@@ -85,7 +85,17 @@ if ($accion === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($accion === 'eliminar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($accion === 'iniciar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = (int) ($_POST['id'] ?? 0);
+
+    $resultado = $torneo->iniciar($id, $_SESSION['usuario']['id']);
+
+    $_SESSION[$resultado['exito'] ? 'exito' : 'error'] = $resultado['mensaje'];
+    header('Location: /tornea/app/views/torneo-detalle.php?id=' . $id);
+    exit;
+}
+
+if ($accion === 'eliminar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
 
     $resultado = $torneo->eliminar($id, $_SESSION['usuario']['id']);

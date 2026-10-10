@@ -461,3 +461,49 @@
     justify-content: space-between;
   }
 }
+
+/* ===== Carga de resultados en cada partido (solo quien gestiona) ===== */
+
+.match-score-input {
+  width: 64px;
+  padding: 4px 8px;
+  border: 2px solid var(--bg-light);
+  border-radius: 10px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--navy);
+  text-align: center;
+  background: var(--white);
+}
+
+.match-score-input:focus {
+  outline: none;
+  border-color: var(--navy-light);
+}
+
+.match-guardar {
+  padding: 4px 14px;
+  font-size: 0.8rem;
+}
+
+/* Pase libre: el participante no juega esta ronda */
+.match-card-libre {
+  border-left-color: var(--bg-light);
+}
+
+.match-team-libre .match-team-nombre {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--gray-text);
+}
+
+/* Al volver de guardar un resultado, el partido queda a la vista y resaltado */
+.match-card:target {
+  box-shadow: 0 0 0 3px var(--gold-light), var(--shadow-soft);
+}
+
+.fecha-grupo,
+.match-card {
+  scroll-margin-top: 100px;
+}
