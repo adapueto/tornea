@@ -19,6 +19,8 @@ $activo = function ($pagina) use ($pagina_actual) {
     return $pagina === $pagina_actual ? ' nav-active' : '';
 };
 ?>
+  <?php // Con JS disponible se activa el menú lateral del celular; sin JS el header se ve como siempre ?>
+  <script>document.documentElement.classList.add('js');</script>
   <header class="site-header">
     <div class="container header-inner">
       <a href="/tornea/index.php" class="logo">
@@ -26,7 +28,16 @@ $activo = function ($pagina) use ($pagina_actual) {
         <img src="/tornea/img/TORNEA_logo.png" alt="Tornea" class="logo-wordmark" />
       </a>
 
-      <nav class="main-nav">
+      <?php // Celular y tablet: botón de tres rayas que abre el menú lateral (RNF-12) ?>
+      <button type="button" class="menu-toggle" aria-label="Abrir menú" aria-controls="menu-principal" aria-expanded="false">
+        <span class="menu-toggle-raya"></span>
+        <span class="menu-toggle-raya"></span>
+        <span class="menu-toggle-raya"></span>
+        <?php if ($invitaciones_pendientes): ?><span class="menu-toggle-aviso" title="Invitaciones sin responder"></span><?php endif; ?>
+      </button>
+
+      <nav class="main-nav" id="menu-principal" aria-label="Menú principal">
+        <button type="button" class="menu-cerrar" aria-label="Cerrar menú">&times;</button>
         <a href="/tornea/index.php" class="nav-link<?= $activo('inicio') ?>">Inicio</a>
         <a href="/tornea/app/views/torneos.php" class="nav-link<?= $activo('torneos') ?>">Torneos</a>
         <?php if (isset($_SESSION['usuario'])): ?>
@@ -37,7 +48,7 @@ $activo = function ($pagina) use ($pagina_actual) {
             <a href="/tornea/app/views/admin.php" class="nav-link<?= $activo('admin') ?>">Admin</a>
           <?php endif; ?>
           <a href="/tornea/app/views/perfil.php" class="btn btn-outline<?= $activo('perfil') ?>">
-            <?= htmlspecialchars($_SESSION['usuario']['nombre'], ENT_QUOTES, 'UTF-8') ?>
+            <span class="solo-menu-lateral">Mi perfil ·</span> <?= htmlspecialchars($_SESSION['usuario']['nombre'], ENT_QUOTES, 'UTF-8') ?>
           </a>
           <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
         <?php else: ?>
@@ -46,4 +57,6 @@ $activo = function ($pagina) use ($pagina_actual) {
         <?php endif; ?>
       </nav>
     </div>
+    <div class="menu-fondo"></div>
   </header>
+  <script src="/tornea/js/menu.js?v=1"></script>

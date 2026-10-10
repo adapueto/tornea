@@ -487,3 +487,146 @@ a {
   font-weight: 700;
   text-align: center;
 }
+
+/* ===== Menú lateral (celular y tablet) =====
+   Solo se activa con JS (clase "js" en <html>, la pone el header). Sin JS, el
+   header se ve como antes: el logo y los botones. */
+
+.menu-toggle,
+.menu-cerrar,
+.menu-fondo {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .js .header-inner {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .js .menu-toggle {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0 11px;
+    border: 2px solid var(--navy);
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .menu-toggle-raya {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--navy);
+  }
+
+  /* Punto naranja si hay invitaciones a equipos sin responder */
+  .menu-toggle-aviso {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg-light);
+  }
+
+  /* El menú se convierte en un panel que entra desde la derecha */
+  .js .main-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 210;
+    width: min(300px, 85vw);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 72px 20px 24px;
+    background: var(--white);
+    box-shadow: -10px 0 30px rgba(17, 41, 93, 0.18);
+    overflow-y: auto;
+    transform: translateX(100%);
+    visibility: hidden;
+    /* visibility espera a que termine la animación para que los links cerrados no reciban foco */
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+
+  .js.menu-abierto .main-nav {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+
+  .js .main-nav .nav-link {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+
+  .js .main-nav .nav-link.nav-active {
+    background: var(--bg-light);
+  }
+
+  .js .main-nav .btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .js .menu-cerrar {
+    display: block;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-light);
+    color: var(--navy);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* Fondo oscuro detrás del menú: tocarlo lo cierra */
+  .js .menu-fondo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(17, 41, 93, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .js.menu-abierto .menu-fondo {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Con el menú abierto, la página de atrás no se desplaza */
+  .js.menu-abierto body {
+    overflow: hidden;
+  }
+}
+
+/* Textos que solo aparecen dentro del menú lateral */
+.solo-menu-lateral {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .js .solo-menu-lateral {
+    display: inline;
+  }
+}
