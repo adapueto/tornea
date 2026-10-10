@@ -70,6 +70,9 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
           <a href="/tornea/app/views/perfil-editar.php" class="btn btn-gradient btn-lg btn-block">EDITAR PERFIL</a>
           <?php // En celular el menú oculta los links de texto: acceso directo a los equipos ?>
           <a href="/tornea/app/views/equipos.php" class="btn btn-outline btn-lg btn-block perfil-btn-equipos">MIS EQUIPOS<?php if ($invitaciones_pendientes): ?> (<?= $invitaciones_pendientes ?>)<?php endif; ?></a>
+          <?php if ((new Torneo())->esAdmin($usuario['id'])): ?>
+            <a href="/tornea/app/views/admin.php" class="btn btn-outline btn-lg btn-block perfil-btn-equipos">PANEL DE ADMINISTRACIÓN</a>
+          <?php endif; ?>
         </div>
 
         <div class="perfil-torneos">

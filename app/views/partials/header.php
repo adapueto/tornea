@@ -1,15 +1,19 @@
 <?php
 // Encabezado del sitio, compartido por todas las páginas.
-// Opcional: $pagina_actual ('inicio', 'torneos', 'equipos', 'perfil', 'login', 'registro')
+// Opcional: $pagina_actual ('inicio', 'torneos', 'equipos', 'admin', 'perfil', 'login', 'registro')
 // para resaltar dónde está el usuario.
 
 $pagina_actual = $pagina_actual ?? '';
 
 // Invitaciones a equipos sin responder: se avisan al lado de "Equipos"
 $invitaciones_pendientes = 0;
+$es_admin = false;
 if (isset($_SESSION['usuario'])) {
     require_once __DIR__ . '/../../models/equipo.php';
+    require_once __DIR__ . '/../../models/torneo.php';
     $invitaciones_pendientes = (new Equipo())->contarInvitacionesPendientes($_SESSION['usuario']['id']);
+    // El panel solo aparece para administradores (RF-07); el rol se consulta en la base
+    $es_admin = (new Torneo())->esAdmin($_SESSION['usuario']['id']);
 }
 $activo = function ($pagina) use ($pagina_actual) {
     return $pagina === $pagina_actual ? ' nav-active' : '';
@@ -29,6 +33,9 @@ $activo = function ($pagina) use ($pagina_actual) {
           <a href="/tornea/app/views/equipos.php" class="nav-link<?= $activo('equipos') ?>">
             Equipos<?php if ($invitaciones_pendientes): ?> <span class="nav-aviso" title="Invitaciones sin responder"><?= $invitaciones_pendientes ?></span><?php endif; ?>
           </a>
+          <?php if ($es_admin): ?>
+            <a href="/tornea/app/views/admin.php" class="nav-link<?= $activo('admin') ?>">Admin</a>
+          <?php endif; ?>
           <a href="/tornea/app/views/perfil.php" class="btn btn-outline<?= $activo('perfil') ?>">
             <?= htmlspecialchars($_SESSION['usuario']['nombre'], ENT_QUOTES, 'UTF-8') ?>
           </a>
