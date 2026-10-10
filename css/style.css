@@ -630,3 +630,9 @@ a {
     display: inline;
   }
 }
+
+/* La lupa del buscador es un botón: se le sacan los estilos del navegador */
+button.search-icon {
+  border: none;
+  cursor: pointer;
+}

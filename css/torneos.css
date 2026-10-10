@@ -190,3 +190,43 @@
   color: var(--gray-text);
   padding: 24px 0;
 }
+
+/* ===== Buscador y filtros del listado ===== */
+
+.torneos-buscador {
+  max-width: 720px;
+  margin: 24px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.torneos-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.torneos-filtros select {
+  flex: 1 1 180px;
+  padding: 10px 14px;
+  border: 2px solid var(--bg-light);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  font: inherit;
+  font-weight: 600;
+  color: var(--navy);
+  box-shadow: var(--shadow-soft);
+}
+
+.torneos-resultado {
+  margin-top: 18px;
+  color: var(--gray-text);
+}
+
+.torneos-resultado a {
+  margin-left: 6px;
+  font-weight: 700;
+  color: var(--green);
+}

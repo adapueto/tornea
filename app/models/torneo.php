@@ -253,14 +253,38 @@ class Torneo {
 
     // Torneos visibles para cualquiera (RF-48): todo menos los borradores.
     // Primero los en curso, después los próximos y al final los finalizados.
-    public function listarPublicos() {
-        $stmt = $this->pdo->query("
+    // Torneos públicos (RF-48), con búsqueda y filtros opcionales:
+    // ['buscar' => 'futbol buceo', 'tipo' => 'liga', 'estado' => 'en_curso'].
+    // Cada palabra buscada tiene que aparecer en el nombre, el deporte o la descripción.
+    // La comparación no distingue tildes ni mayúsculas (collation utf8mb4_unicode_ci).
+    public function listarPublicos($filtros = []) {
+        $where = ["estado <> 'borrador'"];
+        $params = [];
+
+        $palabras = preg_split('/\s+/', trim($filtros['buscar'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+        foreach (array_slice($palabras, 0, 8) as $palabra) {
+            // % y _ son comodines de LIKE: se escapan para buscarlos como texto
+            $texto = '%' . addcslashes($palabra, '%_\\') . '%';
+            $where[] = '(nombre LIKE ? OR deporte LIKE ? OR descripcion LIKE ?)';
+            array_push($params, $texto, $texto, $texto);
+        }
+        if (in_array($filtros['tipo'] ?? '', self::TIPOS, true)) {
+            $where[] = 'tipo = ?';
+            $params[] = $filtros['tipo'];
+        }
+        if (in_array($filtros['estado'] ?? '', ['publicado', 'en_curso', 'finalizado'], true)) {
+            $where[] = 'estado = ?';
+            $params[] = $filtros['estado'];
+        }
+
+        $stmt = $this->pdo->prepare("
             SELECT * FROM torneos
-            WHERE estado <> 'borrador'
+            WHERE " . implode(' AND ', $where) . "
             ORDER BY FIELD(estado, 'en_curso', 'publicado', 'finalizado'),
                      CASE WHEN estado = 'finalizado' THEN NULL ELSE fecha_inicio END ASC,
                      fecha_inicio DESC
         ");
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

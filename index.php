@@ -16,7 +16,7 @@ $destacados = (new Torneo())->listarDestacados(3);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <link rel="stylesheet" href="css/torneos.css?v=3" />
 </head>
 <body>
@@ -59,12 +59,14 @@ $destacados = (new Torneo())->listarDestacados(3);
             </span>
           </div>
 
-          <div class="search-bar">
-            <span class="search-icon">
+          <?php // Busca en el listado de torneos (RF-48) ?>
+          <form class="search-bar" action="/tornea/app/views/torneos.php" method="get" role="search">
+            <button type="submit" class="search-icon" aria-label="Buscar torneos">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            </span>
-            <input type="text" class="search-placeholder" placeholder="Busca un torneo por nombre, ciudad o deporte..." />
-          </div>
+            </button>
+            <input type="search" name="buscar" class="search-placeholder" maxlength="100"
+                   placeholder="Busca un torneo por nombre, lugar o deporte..." aria-label="Buscar torneos" />
+          </form>
 
           <div class="icon-grid icon-grid-bottom">
             <span class="sport-icon" aria-label="Tenis">
