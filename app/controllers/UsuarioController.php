@@ -49,7 +49,14 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($accion === 'actualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+// Registrar y login son públicos; lo que sigue requiere sesión
+if (!isset($_SESSION['usuario'])) {
+    $_SESSION['error'] = 'Tenés que iniciar sesión para continuar';
+    header('Location: /tornea/app/views/login.php');
+    exit;
+}
+
+if ($accion === 'actualizar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_SESSION['usuario']['id'];
     $nombre = $_POST['nombre'] ?? '';
     $apellido = $_POST['apellido'] ?? '';
