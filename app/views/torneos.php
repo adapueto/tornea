@@ -10,7 +10,10 @@ $filtros = [
     'estado' => $_GET['estado'] ?? '',
 ];
 $filtrando = $filtros['buscar'] !== '' || $filtros['tipo'] !== '' || $filtros['estado'] !== '';
-$torneos = (new Torneo())->listarPublicos($filtros);
+$modelo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+$modelo->actualizarEstadosPorFecha();
+$torneos = $modelo->listarPublicos($filtros);
 ?>
 
 <!DOCTYPE html>

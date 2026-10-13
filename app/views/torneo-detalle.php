@@ -9,6 +9,8 @@ require_once __DIR__ . '/../helpers/formato.php';
 // Detalle de un torneo: una sola vista para los tres tipos (liga, eliminación y suizo)
 
 $modelo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+$modelo->actualizarEstadosPorFecha();
 $id = (int) ($_GET['id'] ?? 0);
 $torneo = $modelo->buscarPorId($id);
 

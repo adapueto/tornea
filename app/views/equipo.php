@@ -15,6 +15,8 @@ if (!isset($_SESSION['usuario'])) {
 
 $usuario_id = $_SESSION['usuario']['id'];
 $modelo = new Equipo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+(new Torneo())->actualizarEstadosPorFecha();
 $equipo = $modelo->buscarPorId((int) ($_GET['id'] ?? 0));
 
 if (!$equipo || !$modelo->puedeVer($equipo, $usuario_id)) {

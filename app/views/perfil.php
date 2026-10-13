@@ -12,6 +12,8 @@ require_once __DIR__ . '/../helpers/formato.php';
 $usuario = $_SESSION['usuario'];
 
 $modeloTorneo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+$modeloTorneo->actualizarEstadosPorFecha();
 $mis_torneos = $modeloTorneo->listarPorOrganizador($usuario['id']);
 $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
 ?>

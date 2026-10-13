@@ -15,6 +15,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $torneo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de decidir según el estado
+$torneo->actualizarEstadosPorFecha();
 
 // Todo lo que cambia datos llega por POST y tiene que traer el token
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -17,24 +17,32 @@ class Torneo {
 
     public function __construct() {
         $this->pdo = conectar();
-        $this->actualizarEstadosPorFecha();
     }
 
     // Un torneo publicado pasa solo a "en curso" cuando llega su fecha de inicio.
     // Se usa la fecha de MySQL (la del sistema). Los borradores no cambian porque
     // todavía no se publicaron, y la finalización la decide el organizador.
-    private function actualizarEstadosPorFecha() {
-        $stmt = $this->pdo->query("
+    // Se llama al principio de las páginas y controladores que usan el estado.
+    public function actualizarEstadosPorFecha() {
+        $buscar = "
             SELECT id FROM torneos
             WHERE estado = 'publicado' AND fecha_inicio <= CURDATE()
-        ");
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        if (!$ids) {
+        ";
+        // Casi siempre no hay ninguno: se revisa rápido y sin bloquear nada
+        if (!$this->pdo->query($buscar)->fetchAll(PDO::FETCH_COLUMN)) {
             return;
         }
 
         $this->pdo->beginTransaction();
         try {
+            // Se vuelve a buscar bloqueando las filas: si otra visita llegó al mismo
+            // tiempo y ya los cambió, no se anotan dos veces en la auditoría
+            $ids = $this->pdo->query($buscar . ' FOR UPDATE')->fetchAll(PDO::FETCH_COLUMN);
+            if (!$ids) {
+                $this->pdo->commit();
+                return;
+            }
+
             $marcas = implode(',', array_fill(0, count($ids), '?'));
             $stmt = $this->pdo->prepare("UPDATE torneos SET estado = 'en_curso' WHERE id IN ($marcas)");
             $stmt->execute($ids);
