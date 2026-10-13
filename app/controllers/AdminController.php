@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/admin.php';
 require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/csrf.php';
 
 session_start();
 
@@ -25,6 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /tornea/app/views/admin.php');
     exit;
 }
+
+// El pedido tiene que traer el token de la sesión, si no se corta acá
+verificarCsrf();
 
 $admin = new Admin();
 

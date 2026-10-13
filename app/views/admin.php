@@ -247,6 +247,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
             <summary class="gestion-subtitulo">Crear una cuenta</summary>
             <p class="gestion-ayuda">Por ejemplo, para sumar otro administrador u organizador. La persona después puede cambiar sus datos desde su perfil.</p>
             <form class="auth-form admin-form" action="/tornea/app/controllers/AdminController.php?accion=crear_usuario" method="post">
+              <?= campoCsrf() ?>
               <input type="hidden" name="volver" value="<?= e($query_actual) ?>" />
               <div class="form-group">
                 <label for="u-nombre">Nombre</label>
@@ -315,6 +316,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
                     </td>
                     <td>
                       <form class="admin-rol" action="/tornea/app/controllers/AdminController.php?accion=cambiar_rol" method="post">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="usuario_id" value="<?= (int) $u['id'] ?>" />
                         <input type="hidden" name="volver" value="<?= e($query_actual) ?>" />
                         <select name="rol" aria-label="Rol de <?= e($u['nombre']) ?>">
@@ -335,6 +337,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
                       <?php else: ?>
                         <form action="/tornea/app/controllers/AdminController.php?accion=eliminar_usuario" method="post"
                               onsubmit="return confirm('¿Eliminar la cuenta de <?= e(addslashes($u['nombre'] . ' ' . $u['apellido'])) ?>? No se puede deshacer.');">
+                          <?= campoCsrf() ?>
                           <input type="hidden" name="usuario_id" value="<?= (int) $u['id'] ?>" />
                           <input type="hidden" name="volver" value="<?= e($query_actual) ?>" />
                           <button type="submit" class="btn btn-peligro">Eliminar</button>
@@ -371,6 +374,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
                 <p class="admin-sub"><?= (int) $m['torneos'] ?> torneos de este tipo · <?= (int) $m['activos'] ?> publicados o en curso</p>
                 <form action="/tornea/app/controllers/AdminController.php?accion=cambiar_modulo" method="post"
                       <?= $m['habilitado'] ? 'onsubmit="return confirm(\'¿Deshabilitar ' . e(addslashes($m['nombre'])) . '? No se van a poder crear torneos nuevos de este tipo.\');"' : '' ?>>
+                  <?= campoCsrf() ?>
                   <input type="hidden" name="codigo" value="<?= e($m['codigo']) ?>" />
                   <input type="hidden" name="habilitar" value="<?= $m['habilitado'] ? '0' : '1' ?>" />
                   <button type="submit" class="btn <?= $m['habilitado'] ? 'btn-peligro' : 'btn-gradient' ?>">
@@ -390,6 +394,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
               Los torneos finalizados quedan como terminaron.
             </p>
             <form class="auth-form admin-form" action="/tornea/app/controllers/AdminController.php?accion=guardar_configuracion" method="post">
+              <?= campoCsrf() ?>
               <?php foreach (Configuracion::VALORES as $clave => $def): ?>
                 <div class="form-group">
                   <label for="c-<?= $clave ?>"><?= $def['nombre'] ?></label>

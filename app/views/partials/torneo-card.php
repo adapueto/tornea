@@ -15,11 +15,13 @@
     <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $t['id'] ?>" class="btn btn-outline btn-block torneo-card-ver">Ver y editar</a>
     <div class="torneo-card-acciones">
       <form action="/tornea/app/controllers/TorneoController.php?accion=publicar" method="post">
+        <?= campoCsrf() ?>
         <input type="hidden" name="id" value="<?= (int) $t['id'] ?>" />
         <button type="submit" class="btn btn-gradient">Publicar</button>
       </form>
       <form action="/tornea/app/controllers/TorneoController.php?accion=eliminar" method="post"
             onsubmit="return confirm('¿Estás seguro de que querés eliminar este torneo? Esta acción no se puede deshacer.');">
+        <?= campoCsrf() ?>
         <input type="hidden" name="id" value="<?= (int) $t['id'] ?>" />
         <button type="submit" class="btn btn-peligro">Eliminar</button>
       </form>

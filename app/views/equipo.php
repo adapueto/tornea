@@ -90,6 +90,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
                 <?php if ($es_lider && !$m['es_lider']): ?>
                   <form action="/tornea/app/controllers/EquipoController.php?accion=quitar" method="post"
                         onsubmit="return confirm('¿Sacar a <?= e(addslashes($m['nombre'])) ?> del equipo?');">
+                    <?= campoCsrf() ?>
                     <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
                     <input type="hidden" name="miembro_id" value="<?= (int) $m['id'] ?>" />
                     <button type="submit" class="btn btn-peligro">Quitar</button>
@@ -117,6 +118,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
                     <?php if ($es_lider && $ins['torneo_estado'] === 'publicado'): ?>
                       <form action="/tornea/app/controllers/EquipoController.php?accion=cancelar_inscripcion" method="post"
                             onsubmit="return confirm('¿Sacar al equipo de este torneo?');">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
                         <input type="hidden" name="torneo_id" value="<?= (int) $ins['torneo_id'] ?>" />
                         <button type="submit" class="btn btn-outline">Cancelar</button>
@@ -142,6 +144,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
             <h2 class="gestion-titulo">Invitar integrantes</h2>
             <p class="gestion-ayuda">Escribí el email con el que se registró en Tornea. La invitación le aparece en "Equipos" y la acepta una sola vez.</p>
             <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=invitar" method="post">
+              <?= campoCsrf() ?>
               <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
               <div class="form-group">
                 <label for="email">Email</label>
@@ -160,6 +163,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
                       <span class="participante-extra">Invitado el <?= date('d/m/Y', strtotime($inv['created_at'])) ?></span>
                     </div>
                     <form action="/tornea/app/controllers/EquipoController.php?accion=cancelar_invitacion" method="post">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
                       <input type="hidden" name="invitacion_id" value="<?= (int) $inv['id'] ?>" />
                       <button type="submit" class="btn btn-outline">Cancelar</button>
@@ -173,6 +177,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
           <div class="gestion-panel">
             <h2 class="gestion-titulo">Nombre del equipo</h2>
             <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=renombrar" method="post">
+              <?= campoCsrf() ?>
               <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
               <div class="form-group">
                 <label for="nombre">Nombre</label>
@@ -190,6 +195,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
               <p class="gestion-ayuda">Se borra el equipo con sus integrantes, invitaciones e inscripciones en torneos que todavía no empezaron. Si el equipo ya jugó algún torneo no se puede borrar, para no perder sus resultados.</p>
               <form action="/tornea/app/controllers/EquipoController.php?accion=baja" method="post"
                     onsubmit="return confirm('¿Seguro que querés dar de baja el equipo? Esta acción no se puede deshacer.');">
+                <?= campoCsrf() ?>
                 <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
                 <button type="submit" class="btn btn-peligro">Dar de baja el equipo</button>
               </form>
@@ -197,6 +203,7 @@ $invitaciones = $es_lider ? $modelo->listarInvitacionesPendientes($equipo_id) : 
               <p class="gestion-ayuda">Dejás de ser parte del equipo. El líder te puede volver a invitar.</p>
               <form action="/tornea/app/controllers/EquipoController.php?accion=salir" method="post"
                     onsubmit="return confirm('¿Seguro que querés salir del equipo?');">
+                <?= campoCsrf() ?>
                 <input type="hidden" name="equipo_id" value="<?= $equipo_id ?>" />
                 <button type="submit" class="btn btn-peligro">Salir del equipo</button>
               </form>

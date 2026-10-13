@@ -1,12 +1,19 @@
 <?php
 
 require_once __DIR__ . '/../models/usuario.php';
+require_once __DIR__ . '/../helpers/csrf.php';
 
 session_start();
 
 $accion = $_GET['accion'] ?? '';
 
 $usuario = new Usuario();
+
+// Todo lo que cambia datos (registro, login, editar perfil, salir) llega por
+// POST y tiene que traer el token de la sesión; si no, se corta acá
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificarCsrf();
+}
 
 if ($accion === 'registrar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = textoPost('nombre');
@@ -40,6 +47,8 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $resultado = $usuario->login($email, $password);
 
     if ($resultado['exito']) {
+        // Sesión nueva al entrar: así nadie puede "prestarte" un id de sesión suyo
+        session_regenerate_id(true);
         $_SESSION['usuario'] = $resultado['usuario'];
         header('Location: /tornea/app/views/perfil.php');
     } else {
@@ -86,7 +95,11 @@ if ($accion === 'actualizar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($accion === 'logout') {
+// Cerrar sesión solo por POST: así una página de afuera no puede desloguearte
+// con solo cargar una imagen (que sería un GET)
+if ($accion === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Vacía los datos y cierra la sesión del todo
+    $_SESSION = [];
     session_destroy();
     header('Location: /tornea/app/views/login.php');
     exit;

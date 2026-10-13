@@ -35,6 +35,7 @@ require_once __DIR__ . '/../helpers/formato.php';
         <?php endif; ?>
 
         <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=login" method="post">
+          <?= campoCsrf() ?>
           <div class="form-group">
             <label for="email">Correo electrónico</label>
             <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required />

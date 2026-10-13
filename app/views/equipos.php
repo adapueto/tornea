@@ -73,10 +73,12 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
                   </div>
                   <div class="inscripcion-botones">
                     <form action="/tornea/app/controllers/EquipoController.php?accion=aceptar" method="post">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="invitacion_id" value="<?= (int) $inv['id'] ?>" />
                       <button type="submit" class="btn btn-gradient">Aceptar</button>
                     </form>
                     <form action="/tornea/app/controllers/EquipoController.php?accion=rechazar" method="post">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="invitacion_id" value="<?= (int) $inv['id'] ?>" />
                       <button type="submit" class="btn btn-peligro">Rechazar</button>
                     </form>
@@ -95,6 +97,7 @@ $equipos = $modelo->listarDeUsuario($usuario_id);
           <h2 class="gestion-titulo">Crear un equipo</h2>
           <p class="gestion-ayuda">Vas a ser el líder: invitás a los integrantes y lo inscribís en los torneos.</p>
           <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=crear" method="post">
+            <?= campoCsrf() ?>
             <div class="form-group">
               <label for="nombre">Nombre del equipo</label>
               <input type="text" id="nombre" name="nombre" maxlength="150" placeholder="Ej: Las Gurisas Vóley" required />
