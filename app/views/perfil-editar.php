@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../helpers/formato.php';
 
 if (!isset($_SESSION['usuario'])) {
     header('Location: /tornea/app/views/login.php');
@@ -7,6 +8,9 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $usuario = $_SESSION['usuario'];
+// Si volvió con un error, se muestra lo que la persona había escrito
+$usuario = array_merge($usuario, $_SESSION['form_perfil'] ?? []);
+unset($_SESSION['form_perfil']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -33,29 +37,29 @@ $usuario = $_SESSION['usuario'];
         <p class="auth-subtitle">Actualizá tus datos personales</p>
 
         <?php if (isset($_SESSION['error'])): ?>
-          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+          <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
         <?php endif; ?>
 
         <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=actualizar" method="post">
           <div class="form-grid-2">
             <div class="form-group">
               <label for="nombre">Nombre</label>
-              <input type="text" id="nombre" name="nombre" value="<?= $usuario['nombre'] ?>" required />
+              <input type="text" id="nombre" name="nombre" value="<?= e($usuario['nombre']) ?>" maxlength="100" required />
             </div>
             <div class="form-group">
               <label for="apellido">Apellido</label>
-              <input type="text" id="apellido" name="apellido" value="<?= $usuario['apellido'] ?>" required />
+              <input type="text" id="apellido" name="apellido" value="<?= e($usuario['apellido']) ?>" maxlength="100" required />
             </div>
           </div>
 
           <div class="form-group">
             <label for="email">Correo electrónico</label>
-            <input type="email" id="email" name="email" value="<?= $usuario['email'] ?>" required />
+            <input type="email" id="email" name="email" value="<?= e($usuario['email']) ?>" maxlength="150" required />
           </div>
 
           <div class="form-group">
             <label for="fecha_nac">Fecha de nacimiento</label>
-            <input type="date" id="fecha_nac" name="fecha_nac" value="<?= $usuario['fecha_nac'] ?? '' ?>" />
+            <input type="date" id="fecha_nac" name="fecha_nac" value="<?= e($usuario['fecha_nac'] ?? '') ?>" max="<?= date('Y-m-d') ?>" />
           </div>
 
           <div class="form-row">

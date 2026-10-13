@@ -9,33 +9,33 @@ $accion = $_GET['accion'] ?? '';
 $usuario = new Usuario();
 
 if ($accion === 'registrar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'] ?? '';
-    $apellido = $_POST['apellido'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $password_repeat = $_POST['password-repeat'] ?? '';
+    $nombre = textoPost('nombre');
+    $apellido = textoPost('apellido');
+    $email = textoPost('email');
+    $password = textoPost('password');
+    $password_repeat = textoPost('password-repeat');
 
     if ($password !== $password_repeat) {
-        $_SESSION['error'] = 'Las contraseñas no coinciden';
-        header('Location: /tornea/app/views/register.php');
-        exit;
+        $resultado = ['exito' => false, 'mensaje' => 'Las contraseñas no coinciden'];
+    } else {
+        $resultado = $usuario->registrar($nombre, $apellido, $email, $password);
     }
-
-    $resultado = $usuario->registrar($nombre, $apellido, $email, $password);
 
     if ($resultado['exito']) {
         $_SESSION['exito'] = $resultado['mensaje'];
         header('Location: /tornea/app/views/login.php');
     } else {
         $_SESSION['error'] = $resultado['mensaje'];
+        // Guarda lo que escribió (menos la contraseña) para no tener que escribirlo de nuevo
+        $_SESSION['form_registro'] = ['nombre' => $nombre, 'apellido' => $apellido, 'email' => $email];
         header('Location: /tornea/app/views/register.php');
     }
     exit;
 }
 
 if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $email = textoPost('email');
+    $password = textoPost('password');
 
     $resultado = $usuario->login($email, $password);
 
@@ -58,10 +58,10 @@ if (!isset($_SESSION['usuario'])) {
 
 if ($accion === 'actualizar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_SESSION['usuario']['id'];
-    $nombre = $_POST['nombre'] ?? '';
-    $apellido = $_POST['apellido'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $fecha_nac = !empty($_POST['fecha_nac']) ? $_POST['fecha_nac'] : null;
+    $nombre = textoPost('nombre');
+    $apellido = textoPost('apellido');
+    $email = textoPost('email');
+    $fecha_nac = textoPost('fecha_nac') !== '' ? textoPost('fecha_nac') : null;
     $perfil_publico = isset($_POST['perfil_publico']) ? 1 : 0;
 
     $resultado = $usuario->actualizar($id, $nombre, $apellido, $email, $fecha_nac, $perfil_publico);
@@ -70,9 +70,19 @@ if ($accion === 'actualizar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
         $datos = $usuario->buscarPorId($id);
         $_SESSION['usuario'] = $datos;
         $_SESSION['exito'] = $resultado['mensaje'];
+        header('Location: /tornea/app/views/perfil.php');
+    } else {
+        // Vuelve al formulario y muestra qué está mal
+        $_SESSION['error'] = $resultado['mensaje'];
+        $_SESSION['form_perfil'] = [
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+            'email' => $email,
+            'fecha_nac' => $fecha_nac,
+            'perfil_publico' => $perfil_publico,
+        ];
+        header('Location: /tornea/app/views/perfil-editar.php');
     }
-
-    header('Location: /tornea/app/views/perfil.php');
     exit;
 }
 

@@ -1,4 +1,7 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once __DIR__ . '/../helpers/formato.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,11 +27,11 @@
         <p class="auth-subtitle">Iniciá sesión para seguir tus torneos</p>
 
         <?php if (isset($_SESSION['error'])): ?>
-          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+          <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['exito'])): ?>
-          <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
+          <p style="color:green; margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
         <?php endif; ?>
 
         <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=login" method="post">
