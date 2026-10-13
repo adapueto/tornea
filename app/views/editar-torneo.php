@@ -12,6 +12,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $modelo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron: esos ya no se pueden editar
+$modelo->actualizarEstadosPorFecha();
 $torneo_id = (int) ($_GET['id'] ?? 0);
 $torneo = $modelo->buscarPorId($torneo_id);
 

@@ -13,12 +13,16 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 $admin_id = $_SESSION['usuario']['id'];
-if (!(new Torneo())->esAdmin($admin_id)) {
+$modeloTorneo = new Torneo();
+if (!$modeloTorneo->esAdmin($admin_id)) {
     http_response_code(403);
     $_SESSION['error'] = 'Esa sección es solo para administradores';
     header('Location: /tornea/app/views/perfil.php');
     exit;
 }
+
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+$modeloTorneo->actualizarEstadosPorFecha();
 
 $secciones = [
     'resumen' => 'Resumen',

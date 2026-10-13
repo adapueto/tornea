@@ -3,7 +3,10 @@ session_start();
 require_once __DIR__ . '/app/models/torneo.php';
 require_once __DIR__ . '/app/helpers/formato.php';
 
-$destacados = (new Torneo())->listarDestacados(3);
+$modelo = new Torneo();
+// Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos
+$modelo->actualizarEstadosPorFecha();
+$destacados = $modelo->listarDestacados(3);
 ?>
 
 <!DOCTYPE html>

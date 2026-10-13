@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // El pedido tiene que traer el token de la sesión, si no se corta acá
 verificarCsrf();
 
+// Pasa a "en curso" los torneos que ya empezaron, antes de decidir según el estado
+(new Torneo())->actualizarEstadosPorFecha();
+
 $participante = new Participante();
 $usuario_id = $_SESSION['usuario']['id'];
 
