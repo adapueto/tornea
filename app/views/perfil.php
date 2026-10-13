@@ -16,6 +16,10 @@ $modeloTorneo = new Torneo();
 $modeloTorneo->actualizarEstadosPorFecha();
 $mis_torneos = $modeloTorneo->listarPorOrganizador($usuario['id']);
 $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
+$mis_partidos = $modeloTorneo->listarMisPartidos($usuario['id']);
+$mis_posiciones = $modeloTorneo->listarMisPosiciones($usuario['id']);
+// Cuántas filas se ven en cada lista; el resto queda en "Ver más"
+$visibles = 5;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -28,7 +32,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css?v=5" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/perfil.css?v=4" />
+  <link rel="stylesheet" href="/tornea/css/perfil.css?v=6" />
 </head>
 <body>
 
@@ -105,6 +109,122 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
               </p>
             <?php endif; ?>
           </div>
+
+          <section class="perfil-participaciones mi-actividad">
+            <div class="perfil-torneos-header">
+              <h2 class="perfil-torneos-titulo">Mi actividad</h2>
+              <p class="perfil-torneos-subtitle">Tus partidos, resultados y posiciones, solo o con tu equipo.</p>
+            </div>
+
+            <?php if (!$mis_partidos['proximos'] && !$mis_partidos['resultados'] && !$mis_posiciones): ?>
+              <p class="perfil-torneos-subtitle">Cuando juegues un torneo, acá vas a ver tus próximos partidos, tus resultados y en qué puesto vas.</p>
+            <?php else: ?>
+
+              <h3 class="mi-actividad-titulo">Próximos partidos</h3>
+              <?php if ($mis_partidos['proximos']): ?>
+                <ul class="participacion-list" aria-label="Próximos partidos">
+                  <?php foreach ($mis_partidos['proximos'] as $i => $p): ?>
+                    <?php // A partir de la sexta fila, el resto va dentro de "Ver más" ?>
+                    <?php if ($i === $visibles): ?>
+                      </ul>
+                      <details class="mi-actividad-mas">
+                        <summary>Ver <?= count($mis_partidos['proximos']) - $visibles ?> más</summary>
+                        <ul class="participacion-list" aria-label="Próximos partidos (más)">
+                    <?php endif; ?>
+                    <li class="participacion-item">
+                      <div class="participacion-info">
+                        <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $p['torneo_id'] ?>" class="participacion-nombre"><?= e($p['torneo']) ?></a>
+                        <span class="participacion-tipo">
+                          <?= e(nombreRonda($p['tipo'], (int) $p['numero'], (int) $p['cruces'])) ?> ·
+                          <?php if ($p['libre'] && $p['tipo'] === 'eliminacion'): ?>
+                            <?= e($p['mio']) ?> pasa directo a la ronda siguiente
+                          <?php elseif ($p['libre']): ?>
+                            <?= e($p['mio']) ?> queda libre: no juega esta fecha
+                          <?php else: ?>
+                            <?= e($p['mio']) ?> vs <?= e($p['rival']) ?>
+                          <?php endif; ?>
+                        </span>
+                      </div>
+                      <?php if ($p['libre']): ?>
+                        <span class="participacion-resultado participacion-neutro">Libre</span>
+                      <?php elseif ($p['estado_ronda'] === 'en_curso'): ?>
+                        <span class="participacion-resultado">Se juega ahora</span>
+                      <?php else: ?>
+                        <span class="participacion-resultado participacion-neutro">Próxima</span>
+                      <?php endif; ?>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+                <?php if (count($mis_partidos['proximos']) > $visibles): ?></details><?php endif; ?>
+              <?php else: ?>
+                <p class="perfil-torneos-subtitle">No tenés partidos por jugar.</p>
+              <?php endif; ?>
+
+              <h3 class="mi-actividad-titulo">Mis resultados</h3>
+              <?php if ($mis_partidos['resultados']): ?>
+                <ul class="participacion-list" aria-label="Mis resultados">
+                  <?php foreach ($mis_partidos['resultados'] as $i => $p): ?>
+                    <?php if ($i === $visibles): ?>
+                      </ul>
+                      <details class="mi-actividad-mas">
+                        <summary>Ver <?= count($mis_partidos['resultados']) - $visibles ?> más</summary>
+                        <ul class="participacion-list" aria-label="Mis resultados (más)">
+                    <?php endif; ?>
+                    <?php // En suizo el libre suma como ganado
+                    [$texto, $clase] = $p['libre'] ? ['Ganado', 'ganado'] : resultadoPartido((int) $p['mis_puntos'], (int) $p['puntos_rival']); ?>
+                    <li class="participacion-item">
+                      <div class="participacion-info">
+                        <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $p['torneo_id'] ?>" class="participacion-nombre"><?= e($p['torneo']) ?></a>
+                        <span class="participacion-tipo">
+                          <?= e(nombreRonda($p['tipo'], (int) $p['numero'], (int) $p['cruces'])) ?> ·
+                          <?php if ($p['libre']): ?>
+                            <?= e($p['mio']) ?> quedó libre y suma la victoria
+                          <?php else: ?>
+                            <?= e($p['mio']) ?> <?= (int) $p['mis_puntos'] ?> – <?= (int) $p['puntos_rival'] ?> <?= e($p['rival']) ?>
+                          <?php endif; ?>
+                        </span>
+                      </div>
+                      <span class="participacion-resultado participacion-<?= e($clase) ?>"><?= e($texto) ?></span>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+                <?php if (count($mis_partidos['resultados']) > $visibles): ?></details><?php endif; ?>
+              <?php else: ?>
+                <p class="perfil-torneos-subtitle">Todavía no jugaste ningún partido.</p>
+              <?php endif; ?>
+
+              <h3 class="mi-actividad-titulo">Mi posición</h3>
+              <?php if ($mis_posiciones): ?>
+                <ul class="participacion-list" aria-label="Mi posición">
+                  <?php foreach ($mis_posiciones as $i => $p): ?>
+                    <?php if ($i === $visibles): ?>
+                      </ul>
+                      <details class="mi-actividad-mas">
+                        <summary>Ver <?= count($mis_posiciones) - $visibles ?> más</summary>
+                        <ul class="participacion-list" aria-label="Mi posición (más)">
+                    <?php endif; ?>
+                    <?php [$texto, $clase] = posicionEnTorneo($p); ?>
+                    <li class="participacion-item">
+                      <div class="participacion-info">
+                        <a href="/tornea/app/views/torneo-detalle.php?id=<?= (int) $p['id'] ?>" class="participacion-nombre"><?= e($p['nombre']) ?></a>
+                        <span class="participacion-tipo">
+                          <?= etiquetaTipo($p['tipo']) ?> · <?= etiquetaEstado($p['estado']) ?>
+                          <?php if ($p['tipo'] !== 'eliminacion' && $p['puesto']): ?>
+                            · <?= (int) $p['puntos'] ?> pts en <?= (int) $p['pj'] ?> PJ
+                          <?php endif; ?>
+                        </span>
+                      </div>
+                      <span class="participacion-resultado participacion-<?= e($clase) ?>"><?= e($texto) ?></span>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+                <?php if (count($mis_posiciones) > $visibles): ?></details><?php endif; ?>
+              <?php else: ?>
+                <p class="perfil-torneos-subtitle">Tus torneos todavía no empezaron.</p>
+              <?php endif; ?>
+
+            <?php endif; ?>
+          </section>
 
           <div class="perfil-participaciones">
             <div class="perfil-torneos-header">
