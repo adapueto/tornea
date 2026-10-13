@@ -1,4 +1,10 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once __DIR__ . '/../helpers/formato.php';
+// Si volvió con un error, se muestra lo que la persona había escrito
+$form = $_SESSION['form_registro'] ?? [];
+unset($_SESSION['form_registro']);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,34 +30,34 @@
         <p class="auth-subtitle">Registrate para empezar a seguir tus torneos</p>
 
         <?php if (isset($_SESSION['error'])): ?>
-          <p style="color:red; margin-bottom: 12px;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+          <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
         <?php endif; ?>
 
         <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=registrar" method="post">
           <div class="form-grid-2">
             <div class="form-group">
               <label for="nombre">Nombre</label>
-              <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required />
+              <input type="text" id="nombre" name="nombre" value="<?= e($form['nombre'] ?? '') ?>" placeholder="Tu nombre" maxlength="100" required />
             </div>
             <div class="form-group">
               <label for="apellido">Apellido</label>
-              <input type="text" id="apellido" name="apellido" placeholder="Tu apellido" required />
+              <input type="text" id="apellido" name="apellido" value="<?= e($form['apellido'] ?? '') ?>" placeholder="Tu apellido" maxlength="100" required />
             </div>
           </div>
 
           <div class="form-group">
             <label for="email">Correo electrónico</label>
-            <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required />
+            <input type="email" id="email" name="email" value="<?= e($form['email'] ?? '') ?>" placeholder="tuemail@ejemplo.com" maxlength="150" required />
           </div>
 
           <div class="form-group">
             <label for="password">Contraseña</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required />
+            <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" required />
           </div>
 
           <div class="form-group">
             <label for="password-repeat">Repetir contraseña</label>
-            <input type="password" id="password-repeat" name="password-repeat" placeholder="••••••••" required />
+            <input type="password" id="password-repeat" name="password-repeat" placeholder="••••••••" minlength="8" required />
           </div>
 
           <button type="submit" class="btn btn-gradient btn-lg btn-block">REGISTRARSE</button>

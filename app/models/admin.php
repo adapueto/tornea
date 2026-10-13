@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../helpers/validacion.php';
 
 // Consultas y acciones del panel de administración (RF-03 a RF-07, RF-10, RF-11, RF-61, RF-66).
 // Quién puede usarlo se controla en el controlador y en la vista con Torneo::esAdmin().
@@ -158,19 +159,7 @@ class Admin {
         $password = $datos['password'] ?? '';
         $rol = $datos['rol'] ?? '';
 
-        $errores = [];
-        if ($nombre === '' || $apellido === '') {
-            $errores[] = 'Completá el nombre y el apellido';
-        }
-        if (mb_strlen($nombre) > 100 || mb_strlen($apellido) > 100) {
-            $errores[] = 'El nombre y el apellido pueden tener hasta 100 caracteres';
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errores[] = 'Ingresá un email válido, por ejemplo nombre@dominio.com';
-        }
-        if (strlen($password) < 8) {
-            $errores[] = 'La contraseña tiene que tener al menos 8 caracteres';
-        }
+        $errores = validarDatosUsuario($nombre, $apellido, $email, $password);
         if (!in_array($rol, self::ROLES, true)) {
             $errores[] = 'Elegí un rol de la lista';
         }

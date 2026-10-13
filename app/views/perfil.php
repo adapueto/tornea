@@ -43,10 +43,10 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
             <?= e(mb_strtoupper(mb_substr($usuario['nombre'], 0, 1) . mb_substr($usuario['apellido'], 0, 1))) ?>
           </div>
 
-          <h1 class="perfil-nombre"><?= $usuario['nombre'] . ' ' . $usuario['apellido'] ?></h1>
+          <h1 class="perfil-nombre"><?= e($usuario['nombre'] . ' ' . $usuario['apellido']) ?></h1>
 
           <div class="perfil-badges">
-            <span class="perfil-badge"><?= ucfirst($usuario['rol']) ?></span>
+            <span class="perfil-badge"><?= e(ucfirst($usuario['rol'])) ?></span>
             <?php if ($usuario['perfil_publico']): ?>
               <span class="perfil-badge perfil-badge-publico">Perfil público</span>
             <?php else: ?>
@@ -57,7 +57,7 @@ $participaciones = $modeloTorneo->listarParticipaciones($usuario['id']);
           <div class="perfil-info">
             <div class="perfil-info-item">
               <span class="perfil-info-label">Correo electrónico</span>
-              <span class="perfil-info-value"><?= $usuario['email'] ?></span>
+              <span class="perfil-info-value"><?= e($usuario['email']) ?></span>
             </div>
             <?php if (!empty($usuario['fecha_nac'])): ?>
               <div class="perfil-info-item">
