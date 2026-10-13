@@ -54,9 +54,11 @@ Estados de una ronda:
 
 ## Fuera de alcance
 
-- **RF-40 — Publicar rondas.** No existe el estado `publicada`: una ronda se ve en cuanto se genera. Se decidió así porque el torneo ya es público desde que se publica y no hacía falta un paso más para el organizador.
-- **RF-45 — Validar resultados.** No hay un estado de "resultado validado". Se cubre validando el marcador al cargarlo (números enteros de 0 a 999, sin empate en eliminación directa) y dejando que solo lo carguen el organizador o un administrador.
-- **RF-53 — Ver perfiles públicos.** La columna `usuarios.perfil_publico` existe y se puede cambiar desde "Editar perfil", pero no hay una página donde otra persona vea un perfil. Cada usuario solo ve el suyo.
+Lo que afecta al modelo de datos. El detalle (por qué y cómo se haría) y el resto de lo que quedó afuera están en [`fuera-de-alcance.md`](fuera-de-alcance.md).
+
+- **RF-40 — Publicar rondas.** No existe el estado `publicada`: una ronda se ve en cuanto se genera.
+- **RF-45 — Validar resultados.** No hay un estado de "resultado validado"; el marcador se valida al cargarlo.
+- **RF-53 — Ver perfiles públicos.** La columna `usuarios.perfil_publico` existe, pero no hay una página donde otra persona vea un perfil.
 
 ## Diagrama de la base real
 
