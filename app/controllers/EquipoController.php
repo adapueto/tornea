@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/equipo.php';
+require_once __DIR__ . '/../helpers/csrf.php';
 
 session_start();
 
@@ -17,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /tornea/app/views/equipos.php');
     exit;
 }
+
+// El pedido tiene que traer el token de la sesión, si no se corta acá
+verificarCsrf();
 
 $equipo = new Equipo();
 $usuario_id = $_SESSION['usuario']['id'];

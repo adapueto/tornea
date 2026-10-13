@@ -50,7 +50,10 @@ $activo = function ($pagina) use ($pagina_actual) {
           <a href="/tornea/app/views/perfil.php" class="btn btn-outline<?= $activo('perfil') ?>">
             <span class="solo-menu-lateral">Mi perfil ·</span> <?= htmlspecialchars($_SESSION['usuario']['nombre'], ENT_QUOTES, 'UTF-8') ?>
           </a>
-          <a href="/tornea/app/controllers/UsuarioController.php?accion=logout" class="btn btn-gradient">Cerrar Sesión</a>
+          <form action="/tornea/app/controllers/UsuarioController.php?accion=logout" method="post" style="display:contents">
+            <?= campoCsrf() ?>
+            <button type="submit" class="btn btn-gradient">Cerrar Sesión</button>
+          </form>
         <?php else: ?>
           <a href="/tornea/app/views/login.php" class="btn btn-outline<?= $activo('login') ?>">Iniciar Sesión</a>
           <a href="/tornea/app/views/register.php" class="btn btn-gradient<?= $activo('registro') ?>">Registrarse</a>

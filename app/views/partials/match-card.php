@@ -18,6 +18,7 @@ $textos_libre = ['liga' => 'Descansa esta fecha', 'eliminacion' => 'Pasa directo
 <article class="match-card<?= !empty($es_final) ? ' match-card-final' : '' ?><?= $es_libre ? ' match-card-libre' : '' ?>"<?= $en ? ' id="partido-' . (int) $en['id'] . '"' : '' ?>>
   <?php if ($cargar_resultado): ?>
     <form action="/tornea/app/controllers/RondaController.php?accion=resultado" method="post">
+      <?= campoCsrf() ?>
       <input type="hidden" name="enfrentamiento_id" value="<?= (int) $en['id'] ?>" />
   <?php endif; ?>
 

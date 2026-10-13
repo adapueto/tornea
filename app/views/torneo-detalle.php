@@ -243,6 +243,7 @@ if (!$torneo) {
                     <?php if ($torneo['estado'] === 'publicado' && Equipo::esLider($mi_equipo, $usuario_id)): ?>
                       <form action="/tornea/app/controllers/EquipoController.php?accion=cancelar_inscripcion" method="post"
                             onsubmit="return confirm('¿Sacar al equipo de este torneo?');">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="equipo_id" value="<?= (int) $mi_equipo['id'] ?>" />
                         <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                         <input type="hidden" name="volver" value="torneo" />
@@ -254,6 +255,7 @@ if (!$torneo) {
                 <?php elseif ($equipos_para_inscribir): ?>
                   <p class="gestion-ayuda">Elegí cuál de tus equipos querés inscribir. Sus integrantes no tienen que hacer nada; el organizador aprueba la inscripción.</p>
                   <form class="auth-form equipo-form" action="/tornea/app/controllers/EquipoController.php?accion=inscribir" method="post">
+                    <?= campoCsrf() ?>
                     <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                     <div class="form-group">
                       <label for="equipo-inscribir">Equipo</label>
@@ -300,6 +302,7 @@ if (!$torneo) {
                   <div class="gestion-acciones">
                     <form action="/tornea/app/controllers/InscripcionController.php?accion=cancelar" method="post"
                           onsubmit="return confirm('¿Seguro que querés cancelar tu inscripción?');">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                       <button type="submit" class="btn btn-peligro">Cancelar inscripción</button>
                     </form>
@@ -313,6 +316,7 @@ if (!$torneo) {
                 <p class="gestion-ayuda">La inscripción está abierta. Cuando te anotes, el organizador tiene que aprobarte.</p>
                 <div class="gestion-acciones">
                   <form action="/tornea/app/controllers/InscripcionController.php?accion=inscribirse" method="post">
+                    <?= campoCsrf() ?>
                     <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                     <button type="submit" class="btn btn-gradient">Inscribirme</button>
                   </form>
@@ -342,12 +346,14 @@ if (!$torneo) {
 
                   <?php if ($torneo['estado'] === 'borrador'): ?>
                     <form action="/tornea/app/controllers/TorneoController.php?accion=publicar" method="post">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="id" value="<?= $id ?>" />
                       <input type="hidden" name="volver" value="detalle" />
                       <button type="submit" class="btn btn-gradient">Publicar</button>
                     </form>
                     <form action="/tornea/app/controllers/TorneoController.php?accion=eliminar" method="post"
                           onsubmit="return confirm('¿Estás seguro de que querés eliminar este torneo? Esta acción no se puede deshacer.');">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="id" value="<?= $id ?>" />
                       <input type="hidden" name="volver" value="detalle" />
                       <button type="submit" class="btn btn-peligro">Eliminar</button>
@@ -357,6 +363,7 @@ if (!$torneo) {
                   <?php if ($torneo['estado'] === 'publicado' && $conteo['aprobado'] >= Configuracion::valor('minimo_participantes')): ?>
                     <form action="/tornea/app/controllers/TorneoController.php?accion=iniciar" method="post"
                           onsubmit="return confirm('¿Iniciar el torneo ahora? Se cierra la inscripción y juegan los <?= (int) $conteo['aprobado'] ?> aprobados<?= $conteo['pendiente'] ? '; las inscripciones pendientes quedan afuera' : '' ?>.');">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="id" value="<?= $id ?>" />
                       <button type="submit" class="btn btn-gradient">Iniciar torneo ahora</button>
                     </form>
@@ -384,11 +391,13 @@ if (!$torneo) {
                           </div>
                           <div class="inscripcion-botones">
                             <form action="/tornea/app/controllers/InscripcionController.php?accion=aprobar" method="post">
+                              <?= campoCsrf() ?>
                               <input type="hidden" name="participante_id" value="<?= (int) $p['id'] ?>" />
                               <button type="submit" class="btn btn-gradient">Aprobar</button>
                             </form>
                             <form action="/tornea/app/controllers/InscripcionController.php?accion=rechazar" method="post"
                                   onsubmit="return confirm('¿Rechazar la inscripción de <?= e(addslashes($p['nombre'])) ?>?');">
+                              <?= campoCsrf() ?>
                               <input type="hidden" name="participante_id" value="<?= (int) $p['id'] ?>" />
                               <button type="submit" class="btn btn-peligro">Rechazar</button>
                             </form>
@@ -442,6 +451,7 @@ if (!$torneo) {
                     <?php if ($ronda_abierta && $ronda_abierta['cargados'] == $ronda_abierta['partidos']): ?>
                       <form action="/tornea/app/controllers/RondaController.php?accion=cerrar" method="post"
                             onsubmit="return confirm('¿Cerrar la <?= $prefijo_ronda ?> <?= (int) $ronda_abierta['numero'] ?>? Después sus resultados ya no se pueden modificar.');">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="ronda_id" value="<?= (int) $ronda_abierta['id'] ?>" />
                         <button type="submit" class="btn btn-gradient">Cerrar <?= $prefijo_ronda ?> <?= (int) $ronda_abierta['numero'] ?></button>
                       </form>
@@ -449,6 +459,7 @@ if (!$torneo) {
 
                     <?php if (!$motivo_generar): ?>
                       <form action="/tornea/app/controllers/RondaController.php?accion=generar" method="post">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                         <button type="submit" class="btn btn-gradient"><?= $textos_generar[$torneo['tipo']] ?></button>
                       </form>
@@ -457,6 +468,7 @@ if (!$torneo) {
                     <?php if (!$motivo_finalizar): ?>
                       <form action="/tornea/app/controllers/RondaController.php?accion=finalizar" method="post"
                             onsubmit="return confirm('¿Finalizar el torneo? Ya no se van a poder jugar más rondas.');">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                         <button type="submit" class="btn <?= $torneo['tipo'] === 'suizo' ? 'btn-outline' : 'btn-gradient' ?>">Finalizar torneo</button>
                       </form>

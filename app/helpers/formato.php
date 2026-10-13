@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/csrf.php';
+
 // Funciones para mostrar datos en las vistas
 
 // Escapa texto para mostrarlo en HTML de forma segura

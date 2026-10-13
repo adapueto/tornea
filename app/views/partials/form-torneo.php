@@ -9,6 +9,7 @@
 //   $bloquear_formato (editar) true si el deporte y el tipo no se pueden cambiar
 ?>
 <form class="auth-form" action="<?= $accion_form ?>" method="post">
+  <?= campoCsrf() ?>
   <?php if (!empty($torneo_id)): ?>
     <input type="hidden" name="id" value="<?= (int) $torneo_id ?>" />
   <?php endif; ?>

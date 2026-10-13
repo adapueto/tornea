@@ -34,6 +34,7 @@ unset($_SESSION['form_registro']);
         <?php endif; ?>
 
         <form class="auth-form" action="/tornea/app/controllers/UsuarioController.php?accion=registrar" method="post">
+          <?= campoCsrf() ?>
           <div class="form-grid-2">
             <div class="form-group">
               <label for="nombre">Nombre</label>

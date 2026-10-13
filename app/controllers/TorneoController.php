@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/torneo.php';
+require_once __DIR__ . '/../helpers/csrf.php';
 
 session_start();
 
@@ -14,6 +15,11 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $torneo = new Torneo();
+
+// Todo lo que cambia datos llega por POST y tiene que traer el token
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificarCsrf();
+}
 
 // A dónde volver después de publicar o eliminar: al detalle si la acción
 // se hizo desde el panel de gestión, si no al perfil ("Mis torneos")
