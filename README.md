@@ -2,7 +2,7 @@
 
 Proyecto final de año: una app web para gestionar torneos de **cualquier deporte** (fútbol amateur, básquet, vóley, ajedrez, eSports, y más). Permite crear torneos, inscribir participantes o equipos, generar las rondas, cargar resultados y seguir la tabla o las llaves desde un solo lugar.
 
-Los requerimientos completos del proyecto (RF, RNF y el modelo MER) están en [`docs/requerimientos.md`](docs/requerimientos.md).
+Los requerimientos completos del proyecto (RF, RNF y el modelo MER) están en [`docs/requerimientos.md`](docs/requerimientos.md). Las diferencias entre ese MER y la base real (nombres de tablas, valores de los enums y lo que quedó fuera de alcance) están en [`docs/mer-vs-esquema.md`](docs/mer-vs-esquema.md).
 
 ## Qué se puede hacer
 
@@ -71,7 +71,9 @@ tornea/
 ├── docker/php.ini
 ├── Dockerfile
 ├── docker-compose.yml
-└── docs/requerimientos.md         # RF, RNF y resumen del MER
+└── docs/
+    ├── requerimientos.md          # RF, RNF y resumen del MER
+    └── mer-vs-esquema.md          # MER vs. base real, con diagrama
 ```
 
 ## Cómo levantarlo con Docker
