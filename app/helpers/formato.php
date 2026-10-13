@@ -36,6 +36,45 @@ function nombreRondaEliminacion($cruces) {
     return $nombres[$cruces] ?? 'Ronda de ' . ($cruces * 2);
 }
 
+// "Fecha 3" en una liga, "Ronda 3" en suizo y "Semifinal", "Final"... en eliminación
+function nombreRonda($tipo, $numero, $cruces) {
+    if ($tipo === 'eliminacion') {
+        return nombreRondaEliminacion($cruces);
+    }
+    return ($tipo === 'liga' ? 'Fecha ' : 'Ronda ') . $numero;
+}
+
+// Cómo le fue a uno en un partido: [texto, clase CSS]
+function resultadoPartido($mis_puntos, $puntos_rival) {
+    if ($mis_puntos > $puntos_rival) {
+        return ['Ganado', 'ganado'];
+    }
+    if ($mis_puntos < $puntos_rival) {
+        return ['Perdido', 'perdido'];
+    }
+    return ['Empate', 'neutro'];
+}
+
+// Cómo va uno en un torneo: [texto, clase CSS].
+// Liga y suizo muestran el puesto; en eliminación no hay tabla y se mira si perdió.
+function posicionEnTorneo($fila) {
+    if ($fila['tipo'] !== 'eliminacion') {
+        // Sin partidos jugados en el torneo, el puesto sería solo el orden alfabético
+        if (!$fila['puesto'] || !$fila['jugados']) {
+            return ['Todavía no se jugó', 'pendiente'];
+        }
+        return [$fila['puesto'] . '.º de ' . $fila['total'], $fila['puesto'] == 1 ? 'ganado' : 'neutro'];
+    }
+    if (!$fila['rondas']) {
+        return ['Todavía no se jugó', 'pendiente'];
+    }
+    if ($fila['derrotas'] > 0) {
+        return ['Eliminado', 'perdido'];
+    }
+    // Si el torneo terminó y nunca perdió, ganó la final
+    return $fila['estado'] === 'finalizado' ? ['Campeón', 'ganado'] : ['Sigue en carrera', 'neutro'];
+}
+
 // Clase CSS del estado: torneo-estado-publicado, torneo-estado-en-curso, etc.
 function claseEstado($estado) {
     return 'torneo-estado-' . str_replace('_', '-', $estado);

@@ -337,6 +337,106 @@ class Torneo {
         return $stmt->fetchAll();
     }
 
+    // ===== Mi actividad (lo que juega el usuario, solo o con sus equipos) =====
+
+    // Partidos del usuario en torneos en curso o finalizados, separados en
+    // ['proximos' => sin resultado todavía, 'resultados' => ya jugados].
+    // "mio" es la inscripción del usuario (o de su equipo) y "rival" la del otro lado.
+    public function listarMisPartidos($usuario_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT t.id AS torneo_id, t.nombre AS torneo, t.tipo, t.estado AS estado_torneo,
+                   r.numero, r.estado AS estado_ronda,
+                   (SELECT COUNT(*) FROM enfrentamientos x WHERE x.ronda_id = r.id) AS cruces,
+                   COALESCE(em.nombre, CONCAT(um.nombre, ' ', um.apellido)) AS mio,
+                   COALESCE(er.nombre, CONCAT(ur.nombre, ' ', ur.apellido)) AS rival,
+                   en.participante_visitante_id IS NULL AS libre,
+                   -- En suizo el libre cuenta como partido ganado (ver ronda.php)
+                   (res.id IS NOT NULL OR (t.tipo = 'suizo' AND en.participante_visitante_id IS NULL)) AS jugado,
+                   CASE WHEN en.participante_local_id = mio.id THEN res.score_local ELSE res.score_visitante END AS mis_puntos,
+                   CASE WHEN en.participante_local_id = mio.id THEN res.score_visitante ELSE res.score_local END AS puntos_rival
+            FROM participantes mio
+            JOIN enfrentamientos en ON mio.id IN (en.participante_local_id, en.participante_visitante_id)
+            JOIN rondas r ON r.id = en.ronda_id
+            JOIN torneos t ON t.id = r.torneo_id
+            LEFT JOIN equipos em ON em.id = mio.equipo_id
+            LEFT JOIN usuarios um ON um.id = mio.usuario_id
+            -- El rival es el que no soy yo (NULL si me tocó libre)
+            LEFT JOIN participantes rival ON rival.id = CASE
+                WHEN en.participante_local_id = mio.id THEN en.participante_visitante_id
+                ELSE en.participante_local_id END
+            LEFT JOIN equipos er ON er.id = rival.equipo_id
+            LEFT JOIN usuarios ur ON ur.id = rival.usuario_id
+            LEFT JOIN resultados res ON res.enfrentamiento_id = en.id
+            WHERE mio.estado = 'aprobado'
+              AND t.estado IN ('en_curso', 'finalizado')
+              AND (mio.usuario_id = ?
+                   OR mio.equipo_id IN (SELECT equipo_id FROM equipo_miembros WHERE usuario_id = ?))
+            -- Dentro de cada torneo: lo que falta jugar de la fecha más cercana a la más lejana,
+            -- y lo jugado de la última fecha a la primera (por eso el número en negativo)
+            ORDER BY FIELD(t.estado, 'en_curso', 'finalizado'), t.fecha_inicio DESC, t.id,
+                     CASE WHEN res.id IS NOT NULL OR (t.tipo = 'suizo' AND en.participante_visitante_id IS NULL)
+                          THEN -r.numero ELSE r.numero END
+        ");
+        $stmt->execute([$usuario_id, $usuario_id]);
+
+        $proximos = [];
+        $resultados = [];
+        foreach ($stmt->fetchAll() as $partido) {
+            if ($partido['jugado']) {
+                $resultados[] = $partido;
+            } elseif ($partido['estado_torneo'] === 'en_curso' && $partido['estado_ronda'] !== 'finalizada') {
+                // Los libres de rondas ya cerradas no se muestran: no hay nada que jugar
+                $proximos[] = $partido;
+            }
+        }
+        // Primero lo que se juega ahora y después las fechas que vienen (el orden de cada grupo se mantiene)
+        usort($proximos, function ($a, $b) {
+            return ($b['estado_ronda'] === 'en_curso') <=> ($a['estado_ronda'] === 'en_curso');
+        });
+        return ['proximos' => $proximos, 'resultados' => $resultados];
+    }
+
+    // Cómo le va al usuario en cada torneo en curso o finalizado.
+    // Liga y suizo: su puesto en la tabla, con el mismo orden que listarPosiciones().
+    // Eliminación: no hay tabla, se cuentan sus derrotas para saber si sigue en carrera.
+    public function listarMisPosiciones($usuario_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT t.id, t.nombre, t.tipo, t.estado,
+                   pos.puesto, pos.total, pos.pj, pos.puntos, pos.jugados,
+                   (SELECT COUNT(*)
+                    FROM enfrentamientos en
+                    JOIN resultados res ON res.enfrentamiento_id = en.id
+                    WHERE (en.participante_local_id = mio.id AND res.score_local < res.score_visitante)
+                       OR (en.participante_visitante_id = mio.id AND res.score_visitante < res.score_local)
+                   ) AS derrotas,
+                   (SELECT COUNT(*) FROM rondas r WHERE r.torneo_id = t.id) AS rondas
+            FROM participantes mio
+            JOIN torneos t ON t.id = mio.torneo_id
+            -- Puesto de cada participante en la tabla de su torneo (1, 2, 3...)
+            LEFT JOIN (
+                SELECT tp.participante_id, tp.pj, tp.puntos,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY tp.torneo_id
+                           ORDER BY tp.puntos DESC, tp.pg DESC, COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido))
+                       ) AS puesto,
+                       COUNT(*) OVER (PARTITION BY tp.torneo_id) AS total,
+                       -- Si nadie jugó todavía, la tabla es puro orden alfabético
+                       MAX(tp.pj) OVER (PARTITION BY tp.torneo_id) AS jugados
+                FROM tabla_posiciones tp
+                JOIN participantes p ON p.id = tp.participante_id
+                LEFT JOIN equipos e ON e.id = p.equipo_id
+                LEFT JOIN usuarios u ON u.id = p.usuario_id
+            ) pos ON pos.participante_id = mio.id
+            WHERE mio.estado = 'aprobado'
+              AND t.estado IN ('en_curso', 'finalizado')
+              AND (mio.usuario_id = ?
+                   OR mio.equipo_id IN (SELECT equipo_id FROM equipo_miembros WHERE usuario_id = ?))
+            ORDER BY FIELD(t.estado, 'en_curso', 'finalizado'), t.fecha_inicio DESC, t.id
+        ");
+        $stmt->execute([$usuario_id, $usuario_id]);
+        return $stmt->fetchAll();
+    }
+
     // ===== Detalle de un torneo =====
 
     public function buscarPorId($id) {

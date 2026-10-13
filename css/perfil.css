@@ -250,6 +250,42 @@
   background: var(--bg-light);
 }
 
+/* ===== Mi actividad: próximos partidos, resultados y posición ===== */
+
+.mi-actividad-titulo {
+  margin-top: 24px;
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+
+/* Ganado usa el verde de .participacion-resultado; neutro es empate, "Próxima" o un puesto */
+.participacion-neutro {
+  color: var(--navy);
+  background: var(--bg-light);
+}
+
+.participacion-perdido {
+  color: var(--red);
+  background: rgba(192, 57, 43, 0.1);
+}
+
+/* "Ver N más": esconde el resto de la lista hasta que se toca */
+.mi-actividad-mas {
+  margin-top: 10px;
+}
+
+.mi-actividad-mas summary {
+  cursor: pointer;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* En celular el nombre del rival puede ser largo: que baje de línea */
+.mi-actividad .participacion-item {
+  flex-wrap: wrap;
+}
+
 /* "Mis equipos" debajo de "Editar perfil" */
 .perfil-card .perfil-btn-equipos {
   margin-top: 12px;
