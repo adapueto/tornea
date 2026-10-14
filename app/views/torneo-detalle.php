@@ -51,13 +51,21 @@ if (!$torneo) {
     $mensaje_sin_rondas = $mensajes[$torneo['estado']];
 
     // Qué puede hacer el organizador en cada etapa
+    $minimo = Configuracion::valor('minimo_participantes');
     $ayudas = [
         'borrador' => 'Este torneo todavía no es público. Revisá los datos y publicalo para abrir la inscripción.',
-        'publicado' => 'La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar. El torneo empieza solo en su fecha de inicio, o antes si lo iniciás desde acá cuando tenga al menos ' . Configuracion::valor('minimo_participantes') . ' inscriptos aprobados.',
+        'publicado' => "La inscripción está abierta. Podés corregir el nombre, la descripción y las fechas; el deporte, el tipo y la modalidad ya no se pueden cambiar. El torneo empieza solo en su fecha de inicio si tiene al menos $minimo inscriptos aprobados, o antes si lo iniciás desde acá.",
         'en_curso' => 'El torneo está en juego, así que sus datos ya no se pueden modificar. Desde acá se arman las rondas, y los resultados se cargan en cada partido.',
         'finalizado' => 'El torneo terminó. Sus datos y resultados quedan como registro.',
     ];
     $ayuda_gestion = $ayudas[$torneo['estado']];
+
+    // Publicado con la fecha ya pasada: no arrancó porque le faltan inscriptos
+    if ($torneo['estado'] === 'publicado' && $torneo['fecha_inicio'] <= $modelo->fechaHoy()) {
+        $ayuda_gestion = "La fecha de inicio ya llegó, pero el torneo no empezó porque todavía no tiene $minimo inscriptos aprobados. "
+            . "Ojo: apenas apruebes al que completa el mínimo, el torneo empieza solo y las inscripciones que sigan pendientes quedan afuera. "
+            . "Si querés esperar a más gente, editalo y elegí una fecha de inicio de hoy en adelante. Mientras tanto la inscripción sigue abierta.";
+    }
 
     // ===== Inscripción (RF-12) =====
     $modeloParticipante = new Participante();
@@ -347,7 +355,7 @@ if (!$torneo) {
                 <p class="gestion-admin">Estás gestionando este torneo como administrador. Los cambios quedan registrados a tu nombre.</p>
               <?php endif; ?>
 
-              <p class="gestion-ayuda"><?= $ayuda_gestion ?></p>
+              <p class="gestion-ayuda"><?= e($ayuda_gestion) ?></p>
 
               <?php if (Torneo::sePuedeEditar($torneo)): ?>
                 <div class="gestion-acciones">

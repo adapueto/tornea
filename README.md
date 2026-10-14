@@ -119,6 +119,8 @@ docker compose exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" tornea' <
 # 3. Recién ahora, el código nuevo (en desarrollo alcanza con hacer git pull)
 ```
 
+La `002-revivir-torneos-sin-minimo.sql` no cambia la estructura, solo arregla datos: devuelve a "publicado" los torneos que habían arrancado por fecha con menos de 2 inscriptos aprobados y quedaron trabados (queda anotado en el historial). Se corre igual que la 001, en cualquier momento y las veces que haga falta.
+
 En producción es igual, con `-f docker-compose.prod.yml` después de `docker compose`, y el paso 3 es `docker compose -f docker-compose.prod.yml up -d --build`. Con XAMPP: `C:/xampp/mysql/bin/mysql.exe -uroot tornea < database/migraciones/001-goles-en-tabla.sql`.
 
 ## Cómo levantarlo en producción

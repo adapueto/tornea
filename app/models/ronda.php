@@ -75,10 +75,10 @@ class Ronda {
         }
         $cantidad = count($this->idsAprobados($torneo['id']));
         $resumen = $this->listarResumen($torneo['id']);
-        // El mínimo se exige para arrancar: si el admin lo sube con el torneo empezado, el torneo sigue
-        $minimo = $resumen ? 2 : Configuracion::valor('minimo_participantes');
-        if ($cantidad < $minimo) {
-            return "Hacen falta al menos $minimo participantes aprobados para armar los enfrentamientos.";
+        // El mínimo se exige para arrancar: si el admin lo sube con el torneo empezado, el torneo sigue.
+        // Para jugar alcanza con 2.
+        if ($cantidad < 2) {
+            return 'Hacen falta al menos 2 participantes aprobados para armar los enfrentamientos.';
         }
 
         if ($resumen && $torneo['tipo'] === 'liga') {

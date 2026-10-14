@@ -19,7 +19,7 @@ class Configuracion {
         ],
         'minimo_participantes' => [
             'nombre' => 'Mínimo de participantes',
-            'ayuda' => 'Cuántos inscriptos aprobados necesita un torneo para empezar y armar sus rondas.',
+            'ayuda' => 'Cuántos inscriptos aprobados necesita un torneo para empezar.',
             'defecto' => 2, 'min' => 2, 'max' => 64,
         ],
     ];

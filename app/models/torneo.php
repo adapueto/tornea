@@ -19,17 +19,26 @@ class Torneo {
         $this->pdo = conectar();
     }
 
-    // Un torneo publicado pasa solo a "en curso" cuando llega su fecha de inicio.
+    // Un torneo publicado pasa solo a "en curso" cuando llega su fecha de inicio,
+    // si tiene el mínimo de inscriptos aprobados (lo mismo que pide iniciar()).
+    // Si no lo tiene, sigue publicado: el organizador puede correr la fecha o
+    // iniciarlo cuando junte gente.
     // Se usa la fecha de MySQL (la del sistema). Los borradores no cambian porque
     // todavía no se publicaron, y la finalización la decide el organizador.
     // Se llama al principio de las páginas y controladores que usan el estado.
     public function actualizarEstadosPorFecha() {
         $buscar = "
-            SELECT id FROM torneos
-            WHERE estado = 'publicado' AND fecha_inicio <= CURDATE()
+            SELECT t.id FROM torneos t
+            WHERE t.estado = 'publicado' AND t.fecha_inicio <= CURDATE()
+              AND (SELECT COUNT(*) FROM participantes p
+                   WHERE p.torneo_id = t.id AND p.estado = 'aprobado') >= ?
         ";
+        $minimo = Configuracion::valor('minimo_participantes');
+
         // Casi siempre no hay ninguno: se revisa rápido y sin bloquear nada
-        if (!$this->pdo->query($buscar)->fetchAll(PDO::FETCH_COLUMN)) {
+        $stmt = $this->pdo->prepare($buscar);
+        $stmt->execute([$minimo]);
+        if (!$stmt->fetchAll(PDO::FETCH_COLUMN)) {
             return;
         }
 
@@ -37,23 +46,31 @@ class Torneo {
         try {
             // Se vuelve a buscar bloqueando las filas: si otra visita llegó al mismo
             // tiempo y ya los cambió, no se anotan dos veces en la auditoría
-            $ids = $this->pdo->query($buscar . ' FOR UPDATE')->fetchAll(PDO::FETCH_COLUMN);
+            $stmt = $this->pdo->prepare($buscar . ' FOR UPDATE');
+            $stmt->execute([$minimo]);
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
             if (!$ids) {
                 $this->pdo->commit();
                 return;
             }
 
-            $marcas = implode(',', array_fill(0, count($ids), '?'));
-            $stmt = $this->pdo->prepare("UPDATE torneos SET estado = 'en_curso' WHERE id IN ($marcas)");
-            $stmt->execute($ids);
-
+            // Se vuelve a contar al cambiar el estado, por si justo alguien canceló su inscripción
+            $pasar = $this->pdo->prepare("
+                UPDATE torneos t SET t.estado = 'en_curso'
+                WHERE t.id = ? AND t.estado = 'publicado'
+                  AND (SELECT COUNT(*) FROM participantes p
+                       WHERE p.torneo_id = t.id AND p.estado = 'aprobado') >= ?
+            ");
             // usuario_id NULL: el cambio lo hizo el sistema, no una persona
-            $stmt = $this->pdo->prepare("
+            $anotar = $this->pdo->prepare("
                 INSERT INTO auditoria (usuario_id, accion, tabla_afectada, registro_id)
                 VALUES (NULL, 'UPDATE', 'torneos', ?)
             ");
             foreach ($ids as $id) {
-                $stmt->execute([$id]);
+                $pasar->execute([$id, $minimo]);
+                if ($pasar->rowCount() > 0) {
+                    $anotar->execute([$id]);
+                }
             }
 
             $this->pdo->commit();
