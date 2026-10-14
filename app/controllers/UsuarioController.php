@@ -47,6 +47,8 @@ if ($accion === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($resultado['exito']) {
         // Sesión nueva al entrar: así nadie puede "prestarte" un id de sesión suyo
         session_regenerate_id(true);
+        // El token de los formularios también se renueva (se crea otro en la próxima página)
+        unset($_SESSION['csrf']);
         $_SESSION['usuario'] = $resultado['usuario'];
         header('Location: /tornea/app/views/perfil.php');
     } else {
@@ -71,9 +73,15 @@ if ($accion === 'actualizar' &&$_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_nac = textoPost('fecha_nac') !== '' ? textoPost('fecha_nac') : null;
     $perfil_publico = isset($_POST['perfil_publico']) ? 1 : 0;
 
-    $resultado = $usuario->actualizar($id, $nombre, $apellido, $email, $fecha_nac, $perfil_publico);
+    $resultado = $usuario->actualizar($id, $nombre, $apellido, $email, $fecha_nac, $perfil_publico,
+        textoPost('actual'), textoPost('nueva'), textoPost('nueva-repeat'));
 
     if ($resultado['exito']) {
+        // Con contraseña nueva, la sesión también cambia de id (como al iniciar sesión)
+        if ($resultado['clave_cambiada']) {
+            session_regenerate_id(true);
+            unset($_SESSION['csrf']);
+        }
         $datos = $usuario->buscarPorId($id);
         $_SESSION['usuario'] = $datos;
         $_SESSION['exito'] = $resultado['mensaje'];

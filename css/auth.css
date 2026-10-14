@@ -176,6 +176,25 @@
   }
 }
 
+/* Grupo de campos con título (ej. cambiar contraseña en editar perfil) */
+.form-seccion {
+  border: 1.5px solid #dbe4ee;
+  border-radius: 12px;
+  padding: 12px 16px 4px;
+  margin: 8px 0 20px;
+  min-width: 0;
+}
+
+.form-seccion legend {
+  padding: 0 6px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.form-seccion .form-ayuda {
+  margin: 0 0 12px;
+}
+
 /* Aclaración debajo de un campo (ej. por qué no se puede cambiar) */
 .form-ayuda {
   margin-top: -6px;

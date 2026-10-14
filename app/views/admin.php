@@ -76,7 +76,7 @@ function barra($valor, $maximo) {
     return '<span class="reporte-barra"><span style="width: ' . (int) $ancho . '%"></span></span>';
 }
 
-$acciones = ['INSERT' => 'Creó', 'UPDATE' => 'Modificó', 'DELETE' => 'Eliminó', 'LOGIN' => 'Inició sesión', 'LOGIN_FALLIDO' => 'Login fallido'];
+$acciones = ['INSERT' => 'Creó', 'UPDATE' => 'Modificó', 'DELETE' => 'Eliminó', 'LOGIN' => 'Inició sesión', 'LOGIN_FALLIDO' => 'Login fallido', 'CLAVE' => 'Cambió la contraseña', 'CLAVE_FALLIDA' => 'Contraseña actual incorrecta'];
 $nombres_tabla = [
     'torneos' => 'Torneo', 'torneo_organizadores' => 'Organizador de torneo', 'participantes' => 'Inscripción',
     'rondas' => 'Ronda', 'resultados' => 'Resultado', 'equipos' => 'Equipo', 'equipo_miembros' => 'Integrante de equipo',
@@ -98,7 +98,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=3" />
   <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=8" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
-  <link rel="stylesheet" href="/tornea/css/admin.css?v=5" />
+  <link rel="stylesheet" href="/tornea/css/admin.css?v=6" />
 </head>
 <body>
 

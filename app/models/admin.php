@@ -54,7 +54,7 @@ class Admin {
             // Cambios registrados por día en las últimas dos semanas
             'actividad' => $q("
                 SELECT DATE(fecha) AS dia, COUNT(*) FROM auditoria
-                WHERE fecha >= CURDATE() - INTERVAL 13 DAY AND accion NOT IN ('LOGIN', 'LOGIN_FALLIDO')
+                WHERE fecha >= CURDATE() - INTERVAL 13 DAY AND accion NOT IN ('LOGIN', 'LOGIN_FALLIDO', 'CLAVE_FALLIDA')
                 GROUP BY dia ORDER BY dia
             "),
             'torneos_mas_inscriptos' => $this->pdo->query("
@@ -279,7 +279,8 @@ class Admin {
         }
         $stmt = $this->pdo->prepare('UPDATE usuarios SET password = ? WHERE id = ?');
         $stmt->execute([password_hash($password, PASSWORD_BCRYPT), $usuario_id]);
-        $this->auditar($admin_id, 'UPDATE', 'usuarios', $usuario_id);
+        // Queda como cambio de clave: así también se reinician los intentos fallidos
+        $this->auditar($admin_id, 'CLAVE', 'usuarios', $usuario_id);
         return ['exito' => true, 'mensaje' => 'Contraseña cambiada'];
     }
 
@@ -357,7 +358,7 @@ class Admin {
     private function filtroAuditoria($filtros) {
         $where = ['1 = 1'];
         $params = [];
-        if (in_array($filtros['accion'] ?? '', ['INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FALLIDO'], true)) {
+        if (in_array($filtros['accion'] ?? '', ['INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FALLIDO', 'CLAVE', 'CLAVE_FALLIDA'], true)) {
             $where[] = 'a.accion = ?';
             $params[] = $filtros['accion'];
         }
