@@ -267,25 +267,23 @@ class Ronda {
     // Emparejamientos del suizo. La primera ronda se sortea; después se ordena por puntos
     // y cada uno enfrenta al siguiente que todavía no fue su rival. Si un cruce deja a
     // otros sin rival posible, se prueba con el siguiente (backtracking).
-    // Con cantidad impar, el último de la tabla que todavía no tuvo libre queda libre.
+    // Con cantidad impar, primero se elige el libre: el de más abajo en la tabla que todavía
+    // no tuvo uno y que deja emparejar al resto. Después se emparejan los demás.
     private function emparejarSuizo($torneo, $ids, $numero) {
         if ($numero === 1) {
             shuffle($ids);
             $jugados = [];
         } else {
-            // Como la tabla: puntos, diferencia de goles, goles a favor y ganados.
-            // Si siguen iguales, por número de inscripción para que no quede al azar.
+            // Como la tabla: puntos, diferencia de goles, goles a favor, ganados y nombre
             $stats = $this->calcularEstadisticas($torneo);
-            usort($ids, function ($a, $b) use ($stats) {
+            $alfabetico = $this->posicionAlfabetica($torneo['id']);
+            usort($ids, function ($a, $b) use ($stats, $alfabetico) {
                 $sa = $stats[$a];
                 $sb = $stats[$b];
-                return [$sb['puntos'], $sb['gf'] - $sb['gc'], $sb['gf'], $sb['pg'], $a]
-                   <=> [$sa['puntos'], $sa['gf'] - $sa['gc'], $sa['gf'], $sa['pg'], $b];
+                return [$sb['puntos'], $sb['gf'] - $sb['gc'], $sb['gf'], $sb['pg'], $alfabetico[$a]]
+                   <=> [$sa['puntos'], $sa['gf'] - $sa['gc'], $sa['gf'], $sa['pg'], $alfabetico[$b]];
             });
             $jugados = $this->rivalesPrevios($torneo['id']);
-        }
-        if (count($ids) % 2) {
-            $ids[] = 0; // el "libre" va al final para que le toque a los de abajo
         }
 
         $pasos = 0;
@@ -306,13 +304,30 @@ class Ronda {
                 unset($resto[$i]);
                 $solucion = $resolver(array_values($resto));
                 if ($solucion !== null) {
-                    array_unshift($solucion, [$a, $b ?: null]);
+                    array_unshift($solucion, [$a, $b]);
                     return $solucion;
                 }
             }
             return null;
         };
-        return $resolver($ids);
+
+        if (count($ids) % 2 === 0) {
+            return $resolver($ids);
+        }
+
+        // Se busca el libre desde el último de la tabla hacia arriba
+        foreach (array_reverse($ids) as $candidato) {
+            if (isset($jugados[$candidato][0])) {
+                continue; // ya tuvo libre
+            }
+            $resto = array_values(array_diff($ids, [$candidato]));
+            $cruces = $resolver($resto);
+            if ($cruces !== null) {
+                $cruces[] = [$candidato, null];
+                return $cruces;
+            }
+        }
+        return null;
     }
 
     // Para cada participante, a quiénes ya enfrentó: [id => [rival => true]]. El libre cuenta como rival 0.
@@ -689,6 +704,20 @@ class Ronda {
         $stmt = $this->pdo->prepare("SELECT id FROM participantes WHERE torneo_id = ? AND estado = 'aprobado' ORDER BY id");
         $stmt->execute([$torneo_id]);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    // Lugar de cada participante aprobado si se los ordena por nombre, igual que en la tabla: [id => lugar]
+    private function posicionAlfabetica($torneo_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT p.id
+            FROM participantes p
+            LEFT JOIN usuarios u ON u.id = p.usuario_id
+            LEFT JOIN equipos e ON e.id = p.equipo_id
+            WHERE p.torneo_id = ? AND p.estado = 'aprobado'
+            ORDER BY COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)), p.id
+        ");
+        $stmt->execute([$torneo_id]);
+        return array_flip(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
     }
 
     private function nombreParticipante($participante_id) {
