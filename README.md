@@ -187,7 +187,21 @@ Los emails se pueden ver con `SELECT id, email FROM usuarios;`.
 
 ### Datos de prueba
 
-`database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 150 usuarios, 60 torneos de los tres tipos y en todos los estados, 60 equipos permanentes (cada uno inscripto en varios torneos, sin que un jugador quede en dos equipos del mismo torneo) con sus invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo los catálogos `roles`, `modulos` y `configuracion` (3 filas cada uno por definición: los tres roles, los tres tipos de torneo y los tres valores configurables, que se cargan en `tornea.sql`).
+`database/seed.sql` se genera con `python database/tools/generar_seed.py` (determinístico, sin dependencias). Tiene 150 usuarios, 67 torneos de los tres tipos y en todos los estados (60 al azar y 7 casos de borde), 60 equipos permanentes (cada uno inscripto en varios torneos, sin que un jugador quede en dos equipos del mismo torneo) con sus invitaciones, inscripciones aprobadas/pendientes/rechazadas, rondas y enfrentamientos coherentes con cada tipo (todos contra todos, llaves donde avanza el ganador, suizo sin repetir rival), resultados, tabla de posiciones calculada y auditoría. Todas las tablas superan los 50 registros, salvo los catálogos `roles`, `modulos` y `configuracion` (3 filas cada uno por definición: los tres roles, los tres tipos de torneo y los tres valores configurables, que se cargan en `tornea.sql`).
+
+Los torneos 61 a 67 están armados a propósito para mostrar los casos incómodos:
+
+| Id | Torneo | Qué muestra |
+|----|--------|-------------|
+| 61 | Liga del Prado Ping Pong 2026 | Liga con 7 (en curso): en cada fecha uno descansa |
+| 62 | Copa Malvín Fútbol 5 2026 | Eliminación con 6 (finalizada): dos pasan directo a semifinales |
+| 63 | Abierto del Buceo Tenis 2026 | Eliminación con 5 (en curso): tres pasan directo |
+| 64 | Abierto de Primavera Ajedrez 2026 | Suizo con 7 (finalizado): el libre va al último de la tabla que no lo tuvo |
+| 65 | Torneo Cordón FIFA 2026 | Suizo con 9 (en curso) |
+| 66 | Torneo del Oeste Pádel 2026 | Publicado con la fecha vencida y 1 solo aprobado: no arranca hasta que se apruebe a uno de los 2 pendientes |
+| 67 | Liga Interliceal FIFA 2026 | Liga finalizada con empate en puntos en la punta: gana Valentina Sosa por diferencia de goles, aunque por nombre iría segunda |
+
+Las fechas se arman como si hoy fuera el 5 de octubre de 2026, y al final de `seed.sql` se corren al día en que se carga la base. Así los torneos en curso siguen en curso y los publicados siguen por empezar, aunque la base se cargue semanas después. Una base ya cargada no se actualiza sola: con el paso de los días los publicados llegan a su fecha y arrancan, y después de unas dos semanas los torneos en curso quedan con la fecha de fin vencida (para volver a empezar, `docker compose down -v`).
 
 ## Git
 

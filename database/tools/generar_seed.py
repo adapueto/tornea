@@ -15,10 +15,17 @@ Reglas que respeta:
 - Los equipos son permanentes: se arman una vez (líder + invitaciones aceptadas)
   y se inscriben en varios torneos, sin que un jugador quede en dos equipos
   del mismo torneo.
-- Rondas según el tipo: liga = todos contra todos, eliminación = llaves
-  donde avanza el ganador, suizo = emparejamiento por puntos sin repetir rival.
+- Rondas según el tipo, armadas igual que en app/models/ronda.php: liga = todos
+  contra todos, eliminación = llaves donde avanza el ganador, suizo =
+  emparejamiento como la tabla sin repetir rival. Con cantidades incómodas hay
+  "libres" (enfrentamientos sin visitante), como en la app.
 - Solo los torneos en curso o finalizados tienen rondas y resultados, y la
   tabla de posiciones se calcula a partir de esos resultados.
+- Los torneos 61 en adelante son casos de borde armados a propósito (ver
+  CASOS_BORDE): liga impar, eliminación de 6 y de 5, suizo impar, publicado
+  vencido sin el mínimo y desempate por diferencia de goles.
+- Las fechas se arman con HOY fijo, y al final del seed.sql se corren al día
+  en que se carga la base.
 """
 
 import random
@@ -34,6 +41,8 @@ ROL_ADMIN, ROL_ORGANIZADOR, ROL_PARTICIPANTE = 1, 2, 3
 CANT_USUARIOS = 150
 CANT_ORGANIZADORES = 12  # usuarios 2..13
 CANT_TORNEOS = 60
+# Los mismos que vienen en la configuración de tornea.sql
+PUNTOS_VICTORIA, PUNTOS_EMPATE = 3, 1
 
 NOMBRES = [
     "Sofía", "Mateo", "Valentina", "Santiago", "Martina", "Benjamín", "Lucía",
@@ -80,6 +89,40 @@ NOMBRES_EQUIPO = [
 
 HOY = date(2026, 10, 5)
 AHORA = datetime(2026, 10, 5, 12, 0)
+
+# Casos de borde: torneos armados a propósito, después de los 60 al azar (ids 61 en adelante),
+# para que se vean los libres, las llaves incompletas y los desempates.
+# Se agregan al final para no cambiar el sorteo de los torneos 1 a 60 (mismos
+# deportes, inscriptos y resultados; sí cambian sus fechas y el orden del suizo).
+CASOS_BORDE = [
+    # Liga impar: en cada fecha uno descansa
+    {"tipo": "liga", "estado": "en_curso", "cant": 7, "deporte": "Ping Pong",
+     "nombre": "Liga del Prado Ping Pong 2026"},
+    # Eliminación con 6: dos pasan directo a semifinales
+    {"tipo": "eliminacion", "estado": "finalizado", "cant": 6, "deporte": "Fútbol 5",
+     "nombre": "Copa Malvín Fútbol 5 2026"},
+    # Eliminación con 5: tres pasan directo
+    {"tipo": "eliminacion", "estado": "en_curso", "cant": 5, "deporte": "Tenis",
+     "nombre": "Abierto del Buceo Tenis 2026"},
+    # Suizo impar: en cada ronda el último de la tabla que no tuvo libre, descansa y suma
+    {"tipo": "suizo", "estado": "finalizado", "cant": 7, "deporte": "Ajedrez",
+     "nombre": "Abierto de Primavera Ajedrez 2026"},
+    {"tipo": "suizo", "estado": "en_curso", "cant": 9, "deporte": "eSports - FIFA",
+     "nombre": "Torneo Cordón FIFA 2026"},
+    # Publicado con la fecha vencida y sin el mínimo de aprobados: no arranca solo
+    # hasta que el organizador apruebe a uno de los pendientes
+    {"tipo": "liga", "estado": "publicado", "cant": 1, "pendientes": 2, "inicio": -3,
+     "deporte": "Pádel", "nombre": "Torneo del Oeste Pádel 2026"},
+    # Liga con empate en puntos en la punta: Valentina y Bruno terminan con 5 puntos y
+    # gana Valentina por diferencia de goles, aunque por nombre iría segunda.
+    # Resultados fijos, en el orden del fixture (Valentina, Bruno, Tomás, Josefina).
+    {"tipo": "liga", "estado": "finalizado", "cant": 4, "deporte": "eSports - FIFA",
+     "nombre": "Liga Interliceal FIFA 2026", "usuarios": [17, 15, 45, 58], "scores": [
+         (4, 0), (1, 0),   # Fecha 1: Valentina 4-0 Josefina, Bruno 1-0 Tomás
+         (1, 1), (0, 0),   # Fecha 2: Tomás 1-1 Valentina, Bruno 0-0 Josefina
+         (1, 1), (2, 1),   # Fecha 3: Valentina 1-1 Bruno, Tomás 2-1 Josefina
+     ]},
+]
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +252,8 @@ def score_partido(deporte, permite_empate):
 
 
 def circulo(ids):
-    """Fixture todos contra todos (método del círculo). Devuelve lista de rondas."""
+    """Fixture todos contra todos (método del círculo), igual que fixtureLiga() de la app.
+    Con cantidad impar, al que le toca el None descansa: queda como (id, None)."""
     ids = list(ids)
     if len(ids) % 2:
         ids.append(None)
@@ -219,16 +263,49 @@ def circulo(ids):
         partidos = []
         for i in range(n // 2):
             a, b = ids[i], ids[n - 1 - i]
-            if a is not None and b is not None:
+            if a is None or b is None:
+                partidos.append((a or b, None))
+            else:
                 partidos.append((a, b) if r % 2 == 0 else (b, a))
         fechas.append(partidos)
         ids = [ids[0]] + [ids[-1]] + ids[1:-1]
     return fechas
 
 
-def emparejar_suizo(ids, puntos, jugados):
-    """Ordena por puntos y empareja con el primer rival no enfrentado (backtracking simple)."""
-    orden = sorted(ids, key=lambda p: (-puntos[p], p))
+def primera_ronda_eliminacion(ids):
+    """Como primeraRondaEliminacion() de la app: se completa hasta la potencia de 2
+    siguiente con pases libres, repartidos a lo largo de la llave."""
+    ids = list(ids)
+    tamano = 1
+    while tamano < len(ids):
+        tamano *= 2
+    cantidad_cruces = tamano // 2
+    libres = tamano - len(ids)
+    cruces = [None] * cantidad_cruces
+    for k in range(libres):
+        cruces[k * cantidad_cruces // libres] = (ids.pop(0), None)
+    for i in range(cantidad_cruces):
+        if cruces[i] is None:
+            cruces[i] = (ids.pop(0), ids.pop(0))
+    return cruces
+
+
+def sin_tildes(txt):
+    """Para ordenar por nombre como MySQL: sin tildes y sin mayúsculas."""
+    return txt.translate(str.maketrans("áéíóúüñÁÉÍÓÚÜÑ", "aeiouunAEIOUUN")).lower()
+
+
+def emparejar_suizo(ids, stats, nombres, jugados, primera):
+    """Como emparejarSuizo() de la app. Se ordena como la tabla (puntos, diferencia,
+    goles a favor, ganados y nombre) y cada uno enfrenta al siguiente que no fue su rival.
+    Con cantidad impar, el libre va al de más abajo que todavía no lo tuvo.
+    jugados[p] tiene los rivales de p; None quiere decir que ya tuvo libre."""
+    def lugar(p):
+        s = stats[p]
+        return (-s["puntos"], -(s["gf"] - s["gc"]), -s["gf"], -s["pg"], sin_tildes(nombres[p]), p)
+
+    # La primera ronda va en el orden de inscripción, que ya es al azar
+    orden = list(ids) if primera else sorted(ids, key=lugar)
 
     def resolver(restantes):
         if not restantes:
@@ -242,7 +319,21 @@ def emparejar_suizo(ids, puntos, jugados):
                     return [(a, b)] + sol
         return None
 
-    return resolver(orden) or [(orden[i], orden[i + 1]) for i in range(0, len(orden), 2)]
+    if len(orden) % 2 == 0:
+        cruces = resolver(orden)
+    else:
+        cruces = None
+        # El libre se busca desde el último de la tabla hacia arriba
+        for candidato in reversed(orden):
+            if None in jugados[candidato]:
+                continue  # ya tuvo libre
+            cruces = resolver([p for p in orden if p != candidato])
+            if cruces is not None:
+                cruces.append((candidato, None))
+                break
+    # La app no repite rivales: si no hay forma, el seed tampoco tiene que inventarla
+    assert cruces is not None, "el suizo no se puede emparejar sin repetir rival"
+    return cruces
 
 
 eq_id = inv_id = part_id = ronda_id = enf_id = res_id = tabla_id = 0
@@ -290,17 +381,34 @@ for i in range(CANT_EQUIPOS):
 
 orden_equipos = list(miembros_de)
 
-for tid in range(1, CANT_TORNEOS + 1):
-    deporte = random.choice(list(DEPORTES))
+# Nombre de cada participante, como lo muestra la app (para ordenar por nombre)
+nombre_usuario = {u[0]: f"{u[1]} {u[2]}" for u in usuarios}
+nombre_equipo = {e[0]: e[1] for e in equipos}
+nombre_participante = {}
+
+# Los ids fijos de los casos de borde tienen que seguir siendo esas personas
+# (si cambia el sorteo de usuarios, hay que elegir otros)
+assert [nombre_usuario[u] for u in (17, 15, 45, 58)] == \
+    ["Valentina Sosa", "Bruno Correa", "Tomás Sánchez", "Josefina Martínez"], "cambiaron los usuarios del caso 67"
+
+for tid in range(1, CANT_TORNEOS + len(CASOS_BORDE) + 1):
+    # Del 61 en adelante, los casos de borde (vacío para los torneos al azar)
+    caso = CASOS_BORDE[tid - CANT_TORNEOS - 1] if tid > CANT_TORNEOS else {}
+
+    deporte = caso.get("deporte") or random.choice(list(DEPORTES))
     de_equipo, prefijos = DEPORTES[deporte]
-    tipo = TIPOS[(tid - 1) % 3]
-    estado = ESTADOS[tid - 1]
+    tipo = caso.get("tipo") or TIPOS[(tid - 1) % 3]
+    estado = caso.get("estado") or ESTADOS[tid - 1]
 
     # "Liga ..." solo para torneos tipo liga, para que el nombre no confunda
     prefijos = [x for x in prefijos if tipo == "liga" or not x.startswith("Liga")] or ["Torneo"]
-    nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
-    while nombre in nombres_torneo_usados:
+    if caso:
+        nombre = caso["nombre"]
+        assert nombre not in nombres_torneo_usados, "nombre de caso de borde repetido"
+    else:
         nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
+        while nombre in nombres_torneo_usados:
+            nombre = f"{random.choice(prefijos)} {random.choice(LUGARES)} {deporte.replace('eSports - ', '')} 2026"
     nombres_torneo_usados.add(nombre)
 
     if estado == "finalizado":
@@ -311,6 +419,8 @@ for tid in range(1, CANT_TORNEOS + 1):
         inicio = HOY + timedelta(days=random.randint(10, 60))
     else:
         inicio = HOY + timedelta(days=random.randint(30, 120)) if random.random() < 0.6 else None
+    if "inicio" in caso:
+        inicio = HOY + timedelta(days=caso["inicio"])
     fin = inicio + timedelta(days=random.randint(14, 70)) if inicio else None
     creado = no_futuro(momento((inicio or HOY) - timedelta(days=random.randint(20, 40))))
 
@@ -330,14 +440,20 @@ for tid in range(1, CANT_TORNEOS + 1):
     if estado == "borrador":
         continue  # todavía no abre inscripciones
 
-    # Eliminación usa potencias de 2; suizo cantidad par; liga 6 u 8
+    # Al azar: eliminación de 8, suizo de 8 o 10 y liga de 6 u 8.
+    # Las cantidades incómodas (impares, llaves incompletas) están en los casos de borde.
     cant = {"liga": random.choice([6, 8]), "eliminacion": 8, "suizo": random.choice([8, 10])}[tipo]
     # En torneos publicados la inscripción sigue abierta: menos aprobados y algunos pendientes
     extra_pendientes = random.randint(1, 3) if estado == "publicado" else 0
     rechazados = random.randint(0, 2)
+    if caso:
+        cant, extra_pendientes, rechazados = caso["cant"], caso.get("pendientes", 0), 0
 
     inscripcion = creado + timedelta(days=2)
     candidatos = random.sample(PARTICIPANTES, k=len(PARTICIPANTES))
+    if caso.get("usuarios"):
+        # Se inscriben en este orden (pop saca del final)
+        candidatos = list(reversed(caso["usuarios"]))
     aprobados = []
 
     # Torneo por equipos: equipos del pool sin jugadores en común entre sí
@@ -354,6 +470,7 @@ for tid in range(1, CANT_TORNEOS + 1):
         part_id += 1
         cuando = no_futuro(inscripcion + timedelta(hours=random.randint(1, 240)))
         participantes.append((part_id, tid, usuario, equipo, "equipo" if equipo else "individual", estado_insc, cuando))
+        nombre_participante[part_id] = nombre_equipo[equipo] if equipo else nombre_usuario[usuario]
         quien = usuario if usuario else lider_de[equipo]
         auditoria.append((quien, "INSERT", "participantes", part_id, cuando))
         if estado_insc != "pendiente":
@@ -361,7 +478,7 @@ for tid in range(1, CANT_TORNEOS + 1):
         return part_id
 
     estados_insc = ["aprobado"] * cant + ["pendiente"] * extra_pendientes + ["rechazado"] * rechazados
-    if estado == "publicado":
+    if estado == "publicado" and not caso:
         # Inscripción abierta: parte de los aprobados todavía no fue revisada
         for i in range(random.randint(1, cant // 2)):
             estados_insc[i] = "pendiente"
@@ -391,23 +508,26 @@ for tid in range(1, CANT_TORNEOS + 1):
 
     if tipo == "liga":
         fixture = circulo(aprobados)
-    elif tipo == "eliminacion":
-        fixture = None
-        total_rondas = 3  # 8 participantes
+        cant_rondas = len(fixture)
     else:
-        total_rondas = 3 if cant == 8 else 4
+        # Eliminación: rondas hasta la final. Suizo: las que recomienda la app.
+        # En los dos casos es log2 de la cantidad, redondeado para arriba (8 -> 3, 6 -> 3, 9 -> 4)
+        cant_rondas = (len(aprobados) - 1).bit_length()
 
-    cant_rondas = len(fixture) if tipo == "liga" else total_rondas
     # Una ronda por semana. En curso: las semanas ya pasadas están jugadas y la actual va a medias
     if estado == "finalizado":
         rondas_jugadas = cant_rondas
     else:
-        rondas_jugadas = max(1, min((HOY - inicio).days // 7, cant_rondas - 1))
+        dias = (HOY - inicio).days
+        rondas_jugadas = max(1, min(dias // 7, cant_rondas - 1))
+        # El inicio se acomoda a las rondas jugadas, así la ronda en curso es la de esta semana
+        inicio = HOY - timedelta(days=7 * rondas_jugadas + dias % 7)
 
     fecha_ronda = inicio
     vivos = list(aprobados)
     random.shuffle(vivos)
     jugados = {p: set() for p in aprobados}
+    scores_fijos = list(caso.get("scores", []))
 
     for numero in range(1, cant_rondas + 1):
         if tipo == "liga":
@@ -415,11 +535,15 @@ for tid in range(1, CANT_TORNEOS + 1):
         elif tipo == "eliminacion":
             if numero > rondas_jugadas + 1:
                 break  # la siguiente ronda de la llave todavía no se generó
-            partidos = [(vivos[i], vivos[i + 1]) for i in range(0, len(vivos), 2)]
+            if numero == 1:
+                partidos = primera_ronda_eliminacion(vivos)
+            else:
+                # Los ganadores se cruzan en el orden de la llave
+                partidos = [(vivos[i], vivos[i + 1]) for i in range(0, len(vivos), 2)]
         else:
             if numero > rondas_jugadas + 1:
                 break
-            partidos = emparejar_suizo(aprobados, {p: stats[p]["puntos"] for p in aprobados}, jugados)
+            partidos = emparejar_suizo(aprobados, stats, nombre_participante, jugados, numero == 1)
 
         if numero <= rondas_jugadas:
             estado_ronda = "finalizada"
@@ -433,11 +557,24 @@ for tid in range(1, CANT_TORNEOS + 1):
         auditoria.append((organizador, "INSERT", "rondas", ronda_id, no_futuro(momento(fecha_ronda - timedelta(days=1)))))
 
         ganadores = []
-        for i, (loc, vis) in enumerate(partidos):
+        reales = [c for c in partidos if c[1] is not None]
+        for loc, vis in partidos:
             enf_id += 1
-            jugar = estado_ronda == "finalizada" or (estado_ronda == "en_curso" and i < len(partidos) // 2)
+            if vis is None:
+                # Libre: no se juega y queda finalizado desde el principio, como en la app
+                enfrentamientos.append((enf_id, ronda_id, loc, None, "finalizado"))
+                jugados[loc].add(None)
+                if tipo == "eliminacion":
+                    ganadores.append(loc)  # pasa directo
+                elif tipo == "suizo":
+                    # En el suizo el libre vale una victoria (sin goles)
+                    stats[loc]["pj"] += 1; stats[loc]["pg"] += 1; stats[loc]["puntos"] += PUNTOS_VICTORIA
+                continue  # en la liga solo descansa
+
+            i = reales.index((loc, vis))
+            jugar = estado_ronda == "finalizada" or (estado_ronda == "en_curso" and i < len(reales) // 2)
             if estado_ronda == "en_curso" and not jugar:
-                estado_enf = "en_curso" if i == len(partidos) // 2 else "pendiente"
+                estado_enf = "en_curso" if i == len(reales) // 2 else "pendiente"
             else:
                 estado_enf = "finalizado" if jugar else "pendiente"
             enfrentamientos.append((enf_id, ronda_id, loc, vis, estado_enf))
@@ -446,7 +583,7 @@ for tid in range(1, CANT_TORNEOS + 1):
 
             if not jugar:
                 continue
-            a, b = score_partido(deporte, permite_empate)
+            a, b = scores_fijos.pop(0) if scores_fijos else score_partido(deporte, permite_empate)
             res_id += 1
             cuando = no_futuro(momento(fecha_ronda, 18, 22))
             resultados.append((res_id, enf_id, a, b, organizador, cuando))
@@ -457,21 +594,22 @@ for tid in range(1, CANT_TORNEOS + 1):
             stats[loc]["gf"] += a; stats[loc]["gc"] += b
             stats[vis]["gf"] += b; stats[vis]["gc"] += a
             if a > b:
-                stats[loc]["pg"] += 1; stats[vis]["pp"] += 1; stats[loc]["puntos"] += 3
+                stats[loc]["pg"] += 1; stats[vis]["pp"] += 1; stats[loc]["puntos"] += PUNTOS_VICTORIA
                 ganadores.append(loc)
             elif b > a:
-                stats[vis]["pg"] += 1; stats[loc]["pp"] += 1; stats[vis]["puntos"] += 3
+                stats[vis]["pg"] += 1; stats[loc]["pp"] += 1; stats[vis]["puntos"] += PUNTOS_VICTORIA
                 ganadores.append(vis)
             else:
-                stats[loc]["puntos"] += 1; stats[vis]["puntos"] += 1
+                stats[loc]["puntos"] += PUNTOS_EMPATE; stats[vis]["puntos"] += PUNTOS_EMPATE
 
         if tipo == "eliminacion" and estado_ronda == "finalizada":
             vivos = ganadores
         fecha_ronda += timedelta(days=7)
 
-    # fecha_fin acorde a la cantidad de rondas (una por semana)
+    # Fechas acordes a las rondas: una por semana, y el calendario deja dos semanas
+    # de margen después de la última (así un torneo en curso no se vence enseguida)
     t = torneos[-1]
-    torneos[-1] = t[:7] + (inicio + timedelta(days=7 * (cant_rondas - 1)),) + t[8:]
+    torneos[-1] = t[:6] + (inicio, inicio + timedelta(days=7 * (cant_rondas - 1) + 6 + 14)) + t[8:]
 
     if tipo in ("liga", "suizo"):
         for p in aprobados:
@@ -504,6 +642,7 @@ resumen = "\n".join([
 sql = f"""-- =============================================
 -- Tornea — datos de prueba
 -- Generado por database/tools/generar_seed.py (no editar a mano)
+-- Cargar solo sobre una base vacía, recién creada con tornea.sql
 --
 -- Contraseña de todas las cuentas: tornea123
 --   admin@tornea.test        -> admin
@@ -529,7 +668,23 @@ USE tornea;
 {insert("enfrentamientos", ["id", "ronda_id", "participante_local_id", "participante_visitante_id", "estado"], enfrentamientos)}
 {insert("resultados", ["id", "enfrentamiento_id", "score_local", "score_visitante", "registrado_por", "created_at"], resultados)}
 {insert("tabla_posiciones", ["id", "torneo_id", "participante_id", "pj", "pg", "pp", "puntos", "gf", "gc"], tabla_posiciones)}
-{insert("auditoria", ["id", "usuario_id", "accion", "tabla_afectada", "registro_id", "fecha"], auditoria)}"""
+{insert("auditoria", ["id", "usuario_id", "accion", "tabla_afectada", "registro_id", "fecha"], auditoria)}
+-- Los datos están armados como si hoy fuera {HOY.isoformat()}. Se corren todas las fechas
+-- para que "hoy" sea el día en que se carga la base: así los torneos en curso siguen
+-- en curso y los publicados siguen por empezar, sin importar cuándo se cargue.
+-- (La fecha de nacimiento no se toca.)
+SET @dias = DATEDIFF(CURDATE(), '{HOY.isoformat()}');
+UPDATE torneos SET fecha_inicio = fecha_inicio + INTERVAL @dias DAY,
+                   fecha_fin = fecha_fin + INTERVAL @dias DAY;
+-- Lo que ya pasó no puede quedar en el futuro (si se carga antes del mediodía)
+UPDATE usuarios SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE torneos SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE equipos SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE invitaciones SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE participantes SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE resultados SET created_at = LEAST(created_at + INTERVAL @dias DAY, NOW());
+UPDATE auditoria SET fecha = LEAST(fecha + INTERVAL @dias DAY, NOW());
+"""
 
 SALIDA.write_text(sql, encoding="utf-8", newline="\n")
 print(f"Escrito {SALIDA}")
