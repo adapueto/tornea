@@ -248,6 +248,17 @@ td > .admin-sub:not(:first-child) {
   background: rgba(30, 58, 95, 0.1);
 }
 
+/* Cambio de contraseña, y contraseña actual equivocada en editar perfil */
+.admin-accion-clave {
+  color: var(--green);
+  background: rgba(46, 137, 86, 0.12);
+}
+
+.admin-accion-clave_fallida {
+  color: var(--red);
+  background: rgba(192, 57, 43, 0.1);
+}
+
 /* Cambio de rol en la misma fila */
 .admin-rol {
   display: flex;

@@ -21,7 +21,7 @@ unset($_SESSION['form_perfil']);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css?v=5" />
-  <link rel="stylesheet" href="/tornea/css/auth.css?v=3" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=4" />
 </head>
 <body>
 
@@ -68,6 +68,26 @@ unset($_SESSION['form_perfil']);
               Hacer mi perfil público
             </label>
           </div>
+
+          <!-- Opcional: si la nueva queda vacía, la contraseña no cambia -->
+          <fieldset class="form-seccion">
+            <legend>Cambiar contraseña (opcional)</legend>
+            <p class="form-ayuda">Dejá estos campos vacíos si no querés cambiarla.</p>
+            <div class="form-group">
+              <label for="actual">Contraseña actual</label>
+              <input type="password" id="actual" name="actual" autocomplete="current-password" />
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="nueva">Contraseña nueva</label>
+                <input type="password" id="nueva" name="nueva" minlength="8" placeholder="Al menos 8 caracteres" autocomplete="new-password" />
+              </div>
+              <div class="form-group">
+                <label for="nueva-repeat">Repetir contraseña nueva</label>
+                <input type="password" id="nueva-repeat" name="nueva-repeat" minlength="8" autocomplete="new-password" />
+              </div>
+            </div>
+          </fieldset>
 
           <button type="submit" class="btn btn-gradient btn-lg btn-block">GUARDAR CAMBIOS</button>
         </form>
