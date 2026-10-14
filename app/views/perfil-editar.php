@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once __DIR__ . '/../helpers/formato.php';
+require_once __DIR__ . '/../arranque.php';
 
 if (!isset($_SESSION['usuario'])) {
     header('Location: /tornea/app/views/login.php');

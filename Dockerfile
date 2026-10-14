@@ -6,6 +6,9 @@ RUN docker-php-ext-install pdo_mysql
 # Configuración de PHP para desarrollo (zona horaria y errores visibles)
 COPY docker/php.ini /usr/local/etc/php/conf.d/tornea.ini
 
+# Apache solo deja abrir lo que es parte de la web (páginas, controllers, css, js, img)
+COPY docker/apache-tornea.conf /etc/apache2/conf-enabled/tornea-acceso.conf
+
 # El código usa rutas absolutas /tornea/..., así que la app vive en /var/www/html/tornea
 COPY . /var/www/html/tornea
 

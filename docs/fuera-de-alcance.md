@@ -14,8 +14,8 @@ Lo que no aparece acá está implementado.
 | RF-53 — Ver perfiles públicos | Trabajo futuro |
 | RF-04, RF-05, RF-09, RF-10 — Modificar y eliminar usuarios | En parte (con límites a propósito) |
 | RF-63, RNF-34 — Registrar los cambios | En parte (se sabe quién y cuándo, no qué cambió) |
-| RNF-24 — Errores desde un único mecanismo | En parte |
-| RNF-25 — Rutas claras (TICKET-7, front controller) | Trabajo futuro |
+| RNF-24 — Errores desde un único mecanismo | Hecho (falta unificar los avisos) |
+| RNF-25 — Rutas claras (TICKET-7, front controller) | En parte (arranque común y acceso cerrado; rutas largas) |
 | RNF-30 a RNF-33 — Respaldos y mantenimiento | En curso |
 | RNF-35 — Seguridad (OWASP) | Hecho, con pendientes antes de publicar |
 | RNF-36 — HTTPS al publicar | Pendiente del servidor |
@@ -64,15 +64,18 @@ Los números de TICKET son los de la lista interna de tareas de la entrega, no l
 
 ### RNF-24 — Errores desde un único mecanismo
 
-- **Hoy:** los modelos devuelven `['exito' => …, 'mensaje' => …]` y cada controller pasa ese mensaje a `$_SESSION['error']`, y cada vista lo muestra por su cuenta. La falla de conexión a la base se maneja en un solo lugar (`config/database.php`: anota el error en el log y responde 503 con un mensaje amable). Pero no hay un manejador general (`set_exception_handler`) para un error inesperado.
-- **Por qué:** el lugar natural para ese manejador es el front controller (ver RNF-25), que también quedó para después.
-- **Cómo se haría:** registrar `set_exception_handler` en un archivo que carguen todas las páginas (o en el front controller), que guarde el detalle en el log y muestre una página de error común; y mover el aviso de `$_SESSION['error']` a un partial que usen todas las vistas.
+- **Hoy:** todas las páginas y controllers cargan primero `app/arranque.php`, que registra un manejador general (`set_exception_handler`): si un error se escapa sin que nadie lo ataje, el detalle queda en el log y la persona ve una página común "Algo salió mal" con código 500, sin rutas ni datos internos. La falla de conexión a la base usa la misma página, con código 503. Los errores esperados (datos inválidos, permisos) siguen el camino de siempre: el modelo devuelve `['exito' => …, 'mensaje' => …]` y el controller lo pasa a `$_SESSION['error']`.
+- **Lo que falta:** cada vista muestra el aviso de `$_SESSION['error']` por su cuenta.
+- **Cómo se haría:** mover ese aviso a un partial que usen todas las vistas.
 
 ### RNF-25 — Rutas claras (TICKET-7, front controller)
 
-- **Hoy:** cada página y cada controller se abre directo por su archivo, por ejemplo `/tornea/app/views/torneo-detalle.php?id=3` o `/tornea/app/controllers/EquipoController.php`. Las rutas son predecibles (siguen las carpetas MVC), pero muestran la estructura interna. Además, cualquier archivo PHP se puede pedir suelto, aunque esté pensado para usarse dentro de otro (un partial o un modelo); en producción no muestra nada sensible porque los errores no se muestran (`display_errors = Off`).
-- **Por qué:** pasar a un front controller obliga a cambiar más de cien rutas escritas en vistas, controllers y JavaScript, y a configurar Apache, a pocas semanas de la entrega. El riesgo de romper links era más alto que la mejora.
-- **Cómo se haría:** un único `public/index.php` que reciba todas las visitas (con un `.htaccess` que mande todo ahí) y, según la URL (`/tornea/torneos/3`), llame a la vista o al controller que corresponde. Así las rutas quedan cortas, las carpetas `app/` y `config/` dejan de ser accesibles por web y la sesión y los errores se manejan en un solo lugar.
+- **Hoy:** se hizo la parte de un front controller que no cambia las rutas:
+  - **Arranque común:** todas las páginas y controllers empiezan cargando `app/arranque.php` (sesión, helpers y manejador de errores), en vez de repetir esas líneas cada una.
+  - **Acceso cerrado por defecto (en Docker):** `docker/apache-tornea.conf` cierra todo `/tornea/` y abre solo lo que es web: `index.php`, `css/`, `js/`, `img/`, `app/views/` y `app/controllers/`. Modelos, helpers, partials, `config/`, la base, la documentación y los archivos de Docker responden 403. Es configuración de Apache dentro de la imagen: en una instalación sin Docker (XAMPP) no se aplica. Además, `.dockerignore` deja la documentación y los archivos de Docker fuera de la imagen de producción.
+  - Las rutas siguen siendo las de los archivos, por ejemplo `/tornea/app/views/torneo-detalle.php?id=3`: predecibles (siguen las carpetas MVC), pero largas.
+- **Por qué:** pasar a rutas cortas obliga a cambiar más de cien rutas escritas en vistas, controllers y JavaScript, a pocas semanas de la entrega. El riesgo de romper links era más alto que la mejora.
+- **Cómo se haría:** activar `mod_rewrite` y mandar todas las visitas a un único `index.php` que, según la URL (`/tornea/torneos/3`), cargue la vista o el controller que corresponde. Con el arranque común ya hecho, ese archivo solo tendría que elegir la página.
 
 ### RNF-30 a RNF-33 — Respaldos y mantenimiento
 
@@ -82,10 +85,9 @@ Los números de TICKET son los de la lista interna de tareas de la entrega, no l
 
 ### RNF-35 — Seguridad (OWASP)
 
-- **Hoy:** consultas preparadas, contraseñas con `password_hash`, salida escapada, token CSRF en todos los formularios, cookie de sesión `HttpOnly` y `SameSite`, permisos por rol y un usuario de MySQL para la app con permisos mínimos.
+- **Hoy:** consultas preparadas, contraseñas con `password_hash`, salida escapada, archivos internos cerrados al navegador (ver RNF-25), token CSRF en todos los formularios, cookie de sesión `HttpOnly` y `SameSite`, permisos por rol y un usuario de MySQL para la app con permisos mínimos.
 - **Pendiente antes de publicar de verdad:**
   - `docker-compose.prod.yml` carga `database/seed.sql`, que trae cuentas de prueba con contraseña conocida (entre ellas un administrador). Sirve para la demo; en un servidor real hay que sacar esa línea y crear el administrador con una contraseña propia.
-  - La imagen de producción copia todo el proyecto, y `.dockerignore` no excluye archivos que no son de la app (`*.md`, `docker-compose*.yml`, `Dockerfile*`, `.env.example`), que Apache sirve como texto.
   - No hay límite de intentos de inicio de sesión.
   - Al iniciar sesión se guarda en la sesión la fila completa del usuario, incluido el hash de la contraseña.
 - **Riesgo aceptado:** el registro avisa "El email ya está registrado", lo que deja saber si un email tiene cuenta. Se dejó así porque es más claro para quien se registra.

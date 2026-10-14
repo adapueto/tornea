@@ -1,10 +1,9 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/torneo.php';
 require_once __DIR__ . '/../models/participante.php';
 require_once __DIR__ . '/../models/equipo.php';
 require_once __DIR__ . '/../models/ronda.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // Detalle de un torneo: una sola vista para los tres tipos (liga, eliminación y suizo)
 

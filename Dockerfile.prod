@@ -6,6 +6,9 @@ RUN docker-php-ext-install pdo_mysql
 # Configuración de PHP para producción (errores ocultos, solo al log)
 COPY docker/php.prod.ini /usr/local/etc/php/conf.d/tornea.ini
 
+# Apache solo deja abrir lo que es parte de la web (páginas, controllers, css, js, img)
+COPY docker/apache-tornea.conf /etc/apache2/conf-enabled/tornea-acceso.conf
+
 # No mostrar la versión de Apache en encabezados ni páginas de error
 RUN printf 'ServerTokens Prod\nServerSignature Off\n' > /etc/apache2/conf-enabled/zz-tornea.conf
 

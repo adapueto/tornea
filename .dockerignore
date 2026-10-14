@@ -4,3 +4,11 @@
 docs
 database
 *.log
+# Archivos del proyecto que no son parte de la web
+*.md
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+.gitignore
+.env.example
+test-results

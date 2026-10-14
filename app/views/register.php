@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once __DIR__ . '/../helpers/formato.php';
+require_once __DIR__ . '/../arranque.php';
 // Si volvió con un error, se muestra lo que la persona había escrito
 $form = $_SESSION['form_registro'] ?? [];
 unset($_SESSION['form_registro']);
