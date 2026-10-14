@@ -174,7 +174,7 @@ participantes = []         # (id, torneo_id, usuario_id, equipo_id, tipo, estado
 rondas = []                # (id, torneo_id, numero, estado)
 enfrentamientos = []       # (id, ronda_id, local_id, visitante_id, estado)
 resultados = []            # (id, enfrentamiento_id, score_local, score_visitante, registrado_por, created_at)
-tabla_posiciones = []      # (id, torneo_id, participante_id, pj, pg, pp, puntos)
+tabla_posiciones = []      # (id, torneo_id, participante_id, pj, pg, pp, puntos, gf, gc)
 
 TIPOS = ["liga", "eliminacion", "suizo"]
 # Reparto de estados: la mayoría con competencia para tener rondas/resultados
@@ -386,7 +386,7 @@ for tid in range(1, CANT_TORNEOS + 1):
     # ------------------------------------------------------------------
     # Rondas, enfrentamientos y resultados
     # ------------------------------------------------------------------
-    stats = {p: {"pj": 0, "pg": 0, "pp": 0, "puntos": 0} for p in aprobados}
+    stats = {p: {"pj": 0, "pg": 0, "pp": 0, "puntos": 0, "gf": 0, "gc": 0} for p in aprobados}
     permite_empate = tipo != "eliminacion"
 
     if tipo == "liga":
@@ -453,6 +453,9 @@ for tid in range(1, CANT_TORNEOS + 1):
             auditoria.append((organizador, "INSERT", "resultados", res_id, cuando))
             for p in (loc, vis):
                 stats[p]["pj"] += 1
+            # Goles a favor y en contra, para desempatar en la tabla
+            stats[loc]["gf"] += a; stats[loc]["gc"] += b
+            stats[vis]["gf"] += b; stats[vis]["gc"] += a
             if a > b:
                 stats[loc]["pg"] += 1; stats[vis]["pp"] += 1; stats[loc]["puntos"] += 3
                 ganadores.append(loc)
@@ -474,7 +477,7 @@ for tid in range(1, CANT_TORNEOS + 1):
         for p in aprobados:
             tabla_id += 1
             s = stats[p]
-            tabla_posiciones.append((tabla_id, tid, p, s["pj"], s["pg"], s["pp"], s["puntos"]))
+            tabla_posiciones.append((tabla_id, tid, p, s["pj"], s["pg"], s["pp"], s["puntos"], s["gf"], s["gc"]))
 
 auditoria.sort(key=lambda a: a[4])
 auditoria = [(i + 1,) + a for i, a in enumerate(auditoria)]
@@ -525,7 +528,7 @@ USE tornea;
 {insert("rondas", ["id", "torneo_id", "numero", "estado"], rondas)}
 {insert("enfrentamientos", ["id", "ronda_id", "participante_local_id", "participante_visitante_id", "estado"], enfrentamientos)}
 {insert("resultados", ["id", "enfrentamiento_id", "score_local", "score_visitante", "registrado_por", "created_at"], resultados)}
-{insert("tabla_posiciones", ["id", "torneo_id", "participante_id", "pj", "pg", "pp", "puntos"], tabla_posiciones)}
+{insert("tabla_posiciones", ["id", "torneo_id", "participante_id", "pj", "pg", "pp", "puntos", "gf", "gc"], tabla_posiciones)}
 {insert("auditoria", ["id", "usuario_id", "accion", "tabla_afectada", "registro_id", "fecha"], auditoria)}"""
 
 SALIDA.write_text(sql, encoding="utf-8", newline="\n")

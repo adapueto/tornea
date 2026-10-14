@@ -23,7 +23,7 @@ En la base las tablas van en plural.
 | `ronda` | `rondas` | Igual, con `numero` de ronda. |
 | `encuentro` | `enfrentamientos` | En vez de referencias a participante o equipo, tiene `participante_local_id` y `participante_visitante_id`, que apuntan a `participantes` (y esa fila ya dice si es una persona o un equipo). Sin visitante = pase libre. |
 | `resultado` | `resultados` | Relación 1 a 1 con `enfrentamientos` (`enfrentamiento_id` es UNIQUE). Guarda quién lo cargó en `registrado_por`. |
-| `posicion` | `tabla_posiciones` | Una fila por inscripción aprobada, así sirve para torneos individuales y por equipo. Guarda `pj`, `pg`, `pp` y `puntos`; los empates no se guardan, se calculan como `pj - pg - pp`. Se vuelve a armar entera cada vez que se carga un resultado. La eliminación directa no tiene tabla. |
+| `posicion` | `tabla_posiciones` | Una fila por inscripción aprobada, así sirve para torneos individuales y por equipo. Guarda `pj`, `pg`, `pp`, `puntos` y los goles a favor y en contra (`gf`, `gc`), que sirven para desempatar: se ordena por puntos, diferencia (`gf - gc`), goles a favor, partidos ganados y, por último, nombre. Si los dos primeros quedan iguales en todo, el torneo no tiene campeón y la pantalla avisa el empate. Los empates no se guardan, se calculan como `pj - pg - pp`. Se vuelve a armar entera cada vez que se carga un resultado. La eliminación directa no tiene tabla. |
 | `auditoria` | `auditoria` | Igual: quién (`usuario_id`), cuándo (`fecha`), qué hizo (`accion`) y sobre qué registro (`tabla_afectada` + `registro_id`). |
 
 ## Enums
@@ -163,6 +163,8 @@ erDiagram
         int pg
         int pp
         int puntos
+        int gf
+        int gc
     }
     auditoria {
         int id PK

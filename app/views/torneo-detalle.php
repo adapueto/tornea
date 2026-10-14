@@ -141,12 +141,20 @@ if (!$torneo) {
         // Antes de la primera ronda no hay tabla: se muestra a todos en cero
         if (!$posiciones && $participantes) {
             foreach ($participantes as $p) {
-                $posiciones[] = ['nombre' => $p['nombre'], 'pj' => 0, 'pg' => 0, 'pe' => 0, 'pp' => 0, 'puntos' => 0];
+                $posiciones[] = ['nombre' => $p['nombre'], 'pj' => 0, 'pg' => 0, 'pe' => 0, 'pp' => 0,
+                                 'gf' => 0, 'gc' => 0, 'dif' => 0, 'puntos' => 0];
             }
         }
 
-        // Al terminar, el primero de la tabla es el campeón
-        $campeon = $torneo['estado'] === 'finalizado' ? $modeloRonda->campeon($torneo) : null;
+        // Al terminar, el primero de la tabla es el campeón.
+        // Si quedaron empatados en todo, no se corona a nadie y se avisa el empate.
+        $campeon = null;
+        $empatados = [];
+        if ($torneo['estado'] === 'finalizado') {
+            $campeon = $modeloRonda->campeon($torneo);
+            $punta = Ronda::empatadosEnLaPunta($posiciones);
+            $empatados = count($punta) > 1 ? $punta : [];
+        }
 
         // Última ronda con algún resultado cargado (puede estar a medio jugar)
         $ultima_jugada = null;
@@ -522,6 +530,8 @@ if (!$torneo) {
             <h2 class="section-title"><?= $torneo['tipo'] === 'liga' ? 'Tabla de posiciones' : 'Clasificación' ?></h2>
             <?php if ($campeon): ?>
               <p class="section-subtitle">🏆 Campeón: <strong><?= e($campeon) ?></strong></p>
+            <?php elseif ($empatados): ?>
+              <p class="section-subtitle">🤝 Empate en el 1.º puesto: <strong><?= e(listaConY($empatados)) ?></strong></p>
             <?php elseif ($ultima_jugada): ?>
               <p class="section-subtitle">Con los resultados cargados hasta la <?= $prefijo_ronda ?> <?= $ultima_jugada ?>.</p>
             <?php endif; ?>
@@ -537,6 +547,9 @@ if (!$torneo) {
                       <th>PG</th>
                       <th>PE</th>
                       <th>PP</th>
+                      <th title="Goles o tantos a favor">GF</th>
+                      <th title="Goles o tantos en contra">GC</th>
+                      <th title="Diferencia: a favor menos en contra">Dif</th>
                       <th>Pts</th>
                     </tr>
                   </thead>
@@ -549,6 +562,10 @@ if (!$torneo) {
                         <td><?= (int) $fila['pg'] ?></td>
                         <td><?= (int) $fila['pe'] ?></td>
                         <td><?= (int) $fila['pp'] ?></td>
+                        <td><?= (int) $fila['gf'] ?></td>
+                        <td><?= (int) $fila['gc'] ?></td>
+                        <?php // Con signo, así se lee igual que en el fútbol: +5, 0, -3 ?>
+                        <td><?= $fila['dif'] > 0 ? '+' . (int) $fila['dif'] : (int) $fila['dif'] ?></td>
                         <td><?= (int) $fila['puntos'] ?></td>
                       </tr>
                     <?php endforeach; ?>

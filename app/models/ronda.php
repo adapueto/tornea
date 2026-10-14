@@ -121,11 +121,12 @@ class Ronda {
         return null;
     }
 
-    // Campeón del torneo: el ganador de la final, o el primero de la tabla. null si todavía no hay.
+    // Campeón del torneo: el ganador de la final, o el primero de la tabla.
+    // null si todavía no hay, o si el primer puesto quedó empatado en todo.
     public function campeon($torneo) {
         if ($torneo['tipo'] !== 'eliminacion') {
-            $posiciones = $this->torneos->listarPosiciones($torneo['id']);
-            return $posiciones && $posiciones[0]['pj'] > 0 ? $posiciones[0]['nombre'] : null;
+            $punta = self::empatadosEnLaPunta($this->torneos->listarPosiciones($torneo['id']));
+            return count($punta) === 1 ? $punta[0] : null;
         }
 
         // Partidos de la última ronda generada: si hay uno solo, es la final
@@ -142,6 +143,24 @@ class Ronda {
         }
         $ganador = $this->ganador($partidos[0]);
         return $ganador ? $this->nombreParticipante($ganador) : null;
+    }
+
+    // Nombres de los que van primeros en la tabla (ya ordenada por listarPosiciones).
+    // Si hay más de uno, es porque empatan en puntos, diferencia, goles a favor y ganados.
+    // Vacío si todavía no se jugó nada.
+    public static function empatadosEnLaPunta($posiciones) {
+        if (!$posiciones || $posiciones[0]['pj'] == 0) {
+            return [];
+        }
+        $criterios = fn($fila) => [$fila['puntos'], $fila['dif'], $fila['gf'], $fila['pg']];
+        $nombres = [];
+        foreach ($posiciones as $fila) {
+            if ($criterios($fila) != $criterios($posiciones[0])) {
+                break;
+            }
+            $nombres[] = $fila['nombre'];
+        }
+        return $nombres;
     }
 
     // ===== Generar rondas (RF-28, RF-32, RF-36, RF-37, RF-39) =====
@@ -254,9 +273,14 @@ class Ronda {
             shuffle($ids);
             $jugados = [];
         } else {
+            // Como la tabla: puntos, diferencia de goles, goles a favor y ganados.
+            // Si siguen iguales, por número de inscripción para que no quede al azar.
             $stats = $this->calcularEstadisticas($torneo);
             usort($ids, function ($a, $b) use ($stats) {
-                return [$stats[$b]['puntos'], $stats[$b]['pg'], $a] <=> [$stats[$a]['puntos'], $stats[$a]['pg'], $b];
+                $sa = $stats[$a];
+                $sb = $stats[$b];
+                return [$sb['puntos'], $sb['gf'] - $sb['gc'], $sb['gf'], $sb['pg'], $a]
+                   <=> [$sa['puntos'], $sa['gf'] - $sa['gc'], $sa['gf'], $sa['pg'], $b];
             });
             $jugados = $this->rivalesPrevios($torneo['id']);
         }
@@ -548,20 +572,30 @@ class Ronda {
             return ['exito' => false, 'mensaje' => 'No se pudo finalizar el torneo, intentá de nuevo'];
         }
 
+        $mensaje = 'Torneo finalizado';
         $campeon = $this->campeon($torneo);
-        return ['exito' => true, 'mensaje' => 'Torneo finalizado' . ($campeon ? ". Campeón: $campeon" : '')];
+        if ($campeon) {
+            $mensaje .= ". Campeón: $campeon";
+        } elseif ($torneo['tipo'] !== 'eliminacion') {
+            // Sin campeón en liga o suizo: se avisa si fue por un empate en la punta
+            $punta = self::empatadosEnLaPunta($this->torneos->listarPosiciones($torneo_id));
+            if (count($punta) > 1) {
+                $mensaje .= '. Empate en el 1.º puesto: ' . listaConY($punta);
+            }
+        }
+        return ['exito' => true, 'mensaje' => $mensaje];
     }
 
     // ===== Tabla de posiciones (RF-29, RF-30, RF-38) =====
 
-    // PJ, PG, PP y puntos de cada participante aprobado, calculados desde los resultados
+    // PJ, PG, PP, puntos y goles de cada participante aprobado, calculados desde los resultados
     private function calcularEstadisticas($torneo) {
         $config = (new Configuracion())->todos();
         $victoria = $config['puntos_victoria'];
         $empate = $config['puntos_empate'];
         $stats = [];
         foreach ($this->idsAprobados($torneo['id']) as $id) {
-            $stats[$id] = ['pj' => 0, 'pg' => 0, 'pp' => 0, 'puntos' => 0];
+            $stats[$id] = ['pj' => 0, 'pg' => 0, 'pp' => 0, 'puntos' => 0, 'gf' => 0, 'gc' => 0];
         }
 
         $stmt = $this->pdo->prepare("
@@ -596,6 +630,11 @@ class Ronda {
             $b = (int) $en['b'];
             $stats[$l]['pj']++;
             $stats[$v]['pj']++;
+            // Goles que hizo cada uno y goles que le hicieron
+            $stats[$l]['gf'] += $a;
+            $stats[$l]['gc'] += $b;
+            $stats[$v]['gf'] += $b;
+            $stats[$v]['gc'] += $a;
             if ($a === $b) {
                 $stats[$l]['puntos'] += $empate;
                 $stats[$v]['puntos'] += $empate;
@@ -636,11 +675,11 @@ class Ronda {
         $stmt->execute([$torneo['id']]);
 
         $stmt = $this->pdo->prepare("
-            INSERT INTO tabla_posiciones (torneo_id, participante_id, pj, pg, pp, puntos)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO tabla_posiciones (torneo_id, participante_id, pj, pg, pp, puntos, gf, gc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         foreach ($this->calcularEstadisticas($torneo) as $id => $s) {
-            $stmt->execute([$torneo['id'], $id, $s['pj'], $s['pg'], $s['pp'], $s['puntos']]);
+            $stmt->execute([$torneo['id'], $id, $s['pj'], $s['pg'], $s['pp'], $s['puntos'], $s['gf'], $s['gc']]);
         }
     }
 

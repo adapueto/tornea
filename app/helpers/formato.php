@@ -9,6 +9,12 @@ function e($texto) {
     return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 }
 
+// ["Ana", "Beto", "Caro"] -> "Ana, Beto y Caro"
+function listaConY($nombres) {
+    $ultimo = array_pop($nombres);
+    return $nombres ? implode(', ', $nombres) . ' y ' . $ultimo : (string) $ultimo;
+}
+
 function etiquetaTipo($tipo) {
     $tipos = ['liga' => 'Liga', 'eliminacion' => 'Eliminación directa', 'suizo' => 'Sistema suizo'];
     return $tipos[$tipo] ?? $tipo;

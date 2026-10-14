@@ -153,6 +153,9 @@ CREATE TABLE tabla_posiciones (
   pg INT DEFAULT 0,
   pp INT DEFAULT 0,
   puntos INT DEFAULT 0,
+  -- Goles (o tantos) a favor y en contra, para desempatar
+  gf INT DEFAULT 0,
+  gc INT DEFAULT 0,
   FOREIGN KEY (torneo_id) REFERENCES torneos(id) ON DELETE CASCADE,
   FOREIGN KEY (participante_id) REFERENCES participantes(id) ON DELETE CASCADE
 );
