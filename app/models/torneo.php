@@ -415,9 +415,10 @@ class Torneo {
             -- Puesto de cada participante en la tabla de su torneo (1, 2, 3...)
             LEFT JOIN (
                 SELECT tp.participante_id, tp.pj, tp.puntos,
-                       ROW_NUMBER() OVER (
+                       -- RANK: si dos quedan iguales en todo, comparten el puesto
+                       RANK() OVER (
                            PARTITION BY tp.torneo_id
-                           ORDER BY tp.puntos DESC, tp.pg DESC, COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido))
+                           ORDER BY tp.puntos DESC, tp.gf - tp.gc DESC, tp.gf DESC, tp.pg DESC
                        ) AS puesto,
                        COUNT(*) OVER (PARTITION BY tp.torneo_id) AS total,
                        -- Si nadie jugó todavía, la tabla es puro orden alfabético
@@ -473,18 +474,20 @@ class Torneo {
         return $stmt->fetchAll();
     }
 
-    // Tabla de posiciones ordenada: más puntos, más partidos ganados, nombre.
+    // Tabla de posiciones ordenada: más puntos, mejor diferencia de goles, más goles a favor,
+    // más partidos ganados y, si siguen iguales en todo, por nombre.
     // Los empates (pe) no están en la tabla: son los jugados que no se ganaron ni perdieron.
     public function listarPosiciones($torneo_id) {
         $stmt = $this->pdo->prepare("
             SELECT tp.pj, tp.pg, tp.pj - tp.pg - tp.pp AS pe, tp.pp, tp.puntos,
+                   tp.gf, tp.gc, tp.gf - tp.gc AS dif,
                    COALESCE(e.nombre, CONCAT(u.nombre, ' ', u.apellido)) AS nombre
             FROM tabla_posiciones tp
             JOIN participantes p ON p.id = tp.participante_id
             LEFT JOIN equipos e ON e.id = p.equipo_id
             LEFT JOIN usuarios u ON u.id = p.usuario_id
             WHERE tp.torneo_id = ?
-            ORDER BY tp.puntos DESC, tp.pg DESC, nombre
+            ORDER BY tp.puntos DESC, dif DESC, tp.gf DESC, tp.pg DESC, nombre
         ");
         $stmt->execute([$torneo_id]);
         return $stmt->fetchAll();

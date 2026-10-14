@@ -19,7 +19,7 @@ Los requerimientos completos del proyecto (RF, RNF y el modelo MER) están en [`
 - **Eliminación directa:** la llave se sortea; si la cantidad no es potencia de 2, algunos pasan directo. Al cerrar cada ronda, los ganadores se cruzan solos en la siguiente, hasta la final. No hay empates.
 - **Sistema suizo:** la primera ronda se sortea; desde la segunda se enfrentan participantes con puntajes parecidos, sin repetir rival. Con cantidad impar queda uno libre, que suma una victoria.
 
-Cada resultado actualiza la tabla de posiciones o la llave automáticamente, y cada cambio queda registrado en la auditoría (quién, qué y cuándo).
+Cada resultado actualiza la tabla de posiciones o la llave automáticamente (en la tabla, con los mismos puntos va primero la mejor diferencia de goles, después el que hizo más goles y después el que ganó más partidos; si quedan iguales en todo, no se corona a nadie y se avisa el empate), y cada cambio queda registrado en la auditoría (quién, qué y cuándo).
 
 ## Stack
 
@@ -67,6 +67,7 @@ tornea/
 │   ├── tornea.sql                 # Estructura (DDL) y datos fijos (roles, módulos, configuración)
 │   ├── seed.sql                   # Datos de prueba
 │   ├── tools/generar_seed.py      # Genera seed.sql
+│   ├── migraciones/               # Cambios para bases que ya existen
 │   ├── dcl.example.sql            # Usuarios y permisos de MySQL (instalación local)
 │   └── docker/02-dcl.sh           # Usuarios y permisos de MySQL (Docker)
 ├── docker/
@@ -107,6 +108,18 @@ Para borrar la base y volver a cargar todo desde cero (por ejemplo, después de 
 ```bash
 docker compose down -v
 ```
+
+Si no querés perder los datos, las bases creadas antes de un cambio de estructura se actualizan con los archivos de `database/migraciones/`, en orden y una sola vez cada uno. **Primero la migración y después el código nuevo**: el código nuevo usa las columnas que agrega la migración y sin ellas las páginas de los torneos dan error.
+
+```bash
+# 1. Respaldo, por si algo sale mal (un ALTER TABLE no se puede deshacer)
+docker compose exec -T db sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" tornea' > respaldo-antes-de-migrar.sql
+# 2. Migración
+docker compose exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" tornea' < database/migraciones/001-goles-en-tabla.sql
+# 3. Recién ahora, el código nuevo (en desarrollo alcanza con hacer git pull)
+```
+
+En producción es igual, con `-f docker-compose.prod.yml` después de `docker compose`, y el paso 3 es `docker compose -f docker-compose.prod.yml up -d --build`. Con XAMPP: `C:/xampp/mysql/bin/mysql.exe -uroot tornea < database/migraciones/001-goles-en-tabla.sql`.
 
 ## Cómo levantarlo en producción
 
