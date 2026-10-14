@@ -73,7 +73,10 @@ tornea/
 │   ├── php.ini, php.prod.ini      # Configuración de PHP (desarrollo y producción)
 │   └── apache-tornea.conf         # Qué se puede abrir desde el navegador en Docker (lo demás da 403)
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml             # Desarrollo
+├── docker-compose.prod.yml        # Producción (sin datos de prueba)
+├── docker-compose.demo.yml        # Se suma a producción para cargar los datos de prueba
+├── scripts/crear-admin.php        # Crea el primer administrador desde la consola
 └── docs/
     ├── requerimientos.md          # RF, RNF y resumen del MER
     ├── mer-vs-esquema.md          # MER vs. base real, con diagrama
@@ -103,6 +106,36 @@ Para borrar la base y volver a cargar todo desde cero (por ejemplo, después de 
 
 ```bash
 docker compose down -v
+```
+
+## Cómo levantarlo en producción
+
+Usa `docker-compose.prod.yml`: el código va dentro de la imagen, la base no se publica afuera y las contraseñas son obligatorias (copiar `.env.example` a `.env` y poner contraseñas propias).
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Así la base arranca **sin datos de prueba ni cuentas**. Para crear el primer administrador (pide email, nombre, apellido y contraseña, que no se ve al escribirla):
+
+```bash
+docker compose -f docker-compose.prod.yml exec web php scripts/crear-admin.php
+```
+
+Si el email ya tiene cuenta, el script le cambia la contraseña y la deja como administradora.
+
+Para una **demo** con los datos de prueba (cuentas con la contraseña `tornea123`, no usar en un servidor público):
+
+```bash
+docker compose -f docker-compose.prod.yml -f docker-compose.demo.yml up -d --build
+```
+
+Los datos de prueba solo se cargan si la base está vacía. Una base que ya los tiene los conserva, con todas sus cuentas de prueba. Para pasar de una demo a un servidor real, empezar de cero (esto **borra todos los datos**, exportarlos antes si hacen falta):
+
+```bash
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec web php scripts/crear-admin.php
 ```
 
 ## Cómo levantarlo con XAMPP (sin Docker)

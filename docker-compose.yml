@@ -35,7 +35,8 @@ services:
     healthcheck:
       # Por TCP: durante la carga inicial MySQL no escucha en red, así que
       # "web" no arranca hasta que terminen los scripts de inicialización
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASSWORD:-root_dev}"]
+      # No necesita contraseña: si MySQL contesta (aunque sea "acceso denegado"), está vivo
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 5s
       timeout: 5s
       retries: 30

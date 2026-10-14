@@ -17,7 +17,7 @@ Lo que no aparece acá está implementado.
 | RNF-24 — Errores desde un único mecanismo | Hecho (falta unificar los avisos) |
 | RNF-25 — Rutas claras (TICKET-7, front controller) | En parte (arranque común y acceso cerrado; rutas largas) |
 | RNF-30 a RNF-33 — Respaldos y mantenimiento | En curso |
-| RNF-35 — Seguridad (OWASP) | Hecho, con pendientes antes de publicar |
+| RNF-35 — Seguridad (OWASP) | Hecho |
 | RNF-36 — HTTPS al publicar | Pendiente del servidor |
 
 Los números de TICKET son los de la lista interna de tareas de la entrega, no los issues de GitHub.
@@ -85,12 +85,15 @@ Los números de TICKET son los de la lista interna de tareas de la entrega, no l
 
 ### RNF-35 — Seguridad (OWASP)
 
-- **Hoy:** consultas preparadas, contraseñas con `password_hash`, salida escapada, archivos internos cerrados al navegador (ver RNF-25), token CSRF en todos los formularios, cookie de sesión `HttpOnly` y `SameSite`, permisos por rol y un usuario de MySQL para la app con permisos mínimos.
-- **Pendiente antes de publicar de verdad:**
-  - `docker-compose.prod.yml` carga `database/seed.sql`, que trae cuentas de prueba con contraseña conocida (entre ellas un administrador). Sirve para la demo; en un servidor real hay que sacar esa línea y crear el administrador con una contraseña propia.
-  - No hay límite de intentos de inicio de sesión.
-  - Al iniciar sesión se guarda en la sesión la fila completa del usuario, incluido el hash de la contraseña.
-- **Riesgo aceptado:** el registro avisa "El email ya está registrado", lo que deja saber si un email tiene cuenta. Se dejó así porque es más claro para quien se registra.
+- **Hoy:** consultas preparadas, contraseñas con `password_hash`, salida escapada, archivos internos cerrados al navegador (ver RNF-25), token CSRF en todos los formularios, cookie de sesión `HttpOnly` y `SameSite`, permisos por rol y un usuario de MySQL para la app con permisos mínimos. Además:
+  - **Límite de intentos:** después de 5 contraseñas equivocadas seguidas en 15 minutos, la cuenta no deja entrar hasta que pasen los 15 minutos, aunque se ponga la contraseña correcta. Los intentos de una misma cuenta se revisan de a uno, así que mandar muchos a la vez no sirve para pasarse del límite. Entrar bien o cambiar la contraseña (con `scripts/crear-admin.php`) vuelve el contador a cero. Los inicios de sesión y los intentos fallidos quedan en la auditoría y se ven en el historial del panel de administración.
+  - **La sesión no guarda el hash de la contraseña:** se usa para comparar al iniciar sesión y se descarta.
+  - **Producción sin cuentas de prueba:** `docker-compose.prod.yml` no carga `seed.sql`; para una demo se suma `docker-compose.demo.yml`. El primer administrador se crea con `scripts/crear-admin.php` (ver README).
+  - **El chequeo de salud de la base no usa contraseña:** `mysqladmin ping` solo pregunta si MySQL contesta, así que la contraseña de root no queda escrita en esa parte de la configuración. Las contraseñas siguen siendo variables de entorno de los contenedores (se ven con `docker inspect`, que solo puede usar quien administra el servidor); sacarlas de ahí requeriría Docker secrets.
+- **Riesgos aceptados:**
+  - El registro avisa "El email ya está registrado", y solo las cuentas que existen se bloquean por intentos: las dos cosas dejan saber si un email tiene cuenta. Se dejó así porque es más claro para quien se registra o se equivoca.
+  - Alguien podría bloquear a propósito una cuenta ajena equivocándose 5 veces. El bloqueo dura solo 15 minutos.
+  - El límite es por cuenta, no por dirección IP: quien pruebe una contraseña en muchas cuentas distintas no se frena. Para eso haría falta una tabla de intentos con la IP.
 
 ### RNF-36 — HTTPS al publicar
 

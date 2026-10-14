@@ -54,7 +54,7 @@ class Admin {
             // Cambios registrados por día en las últimas dos semanas
             'actividad' => $q("
                 SELECT DATE(fecha) AS dia, COUNT(*) FROM auditoria
-                WHERE fecha >= CURDATE() - INTERVAL 13 DAY
+                WHERE fecha >= CURDATE() - INTERVAL 13 DAY AND accion NOT IN ('LOGIN', 'LOGIN_FALLIDO')
                 GROUP BY dia ORDER BY dia
             "),
             'torneos_mas_inscriptos' => $this->pdo->query("
@@ -272,6 +272,30 @@ class Admin {
         return ['exito' => true, 'mensaje' => "Eliminaste la cuenta de {$usuario['nombre']} {$usuario['apellido']}"];
     }
 
+    // Le pone una contraseña nueva a una cuenta (lo usa scripts/crear-admin.php)
+    public function cambiarPassword($usuario_id, $password, $admin_id) {
+        if (!passwordValida($password)) {
+            return ['exito' => false, 'mensaje' => 'La contraseña tiene que tener al menos 8 caracteres'];
+        }
+        $stmt = $this->pdo->prepare('UPDATE usuarios SET password = ? WHERE id = ?');
+        $stmt->execute([password_hash($password, PASSWORD_BCRYPT), $usuario_id]);
+        $this->auditar($admin_id, 'UPDATE', 'usuarios', $usuario_id);
+        return ['exito' => true, 'mensaje' => 'Contraseña cambiada'];
+    }
+
+    // Busca una cuenta por email, con su rol
+    public function buscarPorEmail($email) {
+        $stmt = $this->pdo->prepare('
+            SELECT u.id, u.nombre, u.apellido, r.nombre AS rol
+            FROM usuarios u
+            LEFT JOIN usuario_roles ur ON ur.usuario_id = u.id
+            LEFT JOIN roles r ON r.id = ur.rol_id
+            WHERE u.email = ?
+        ');
+        $stmt->execute([$email]);
+        return $stmt->fetch();
+    }
+
     private function buscarUsuario($usuario_id) {
         $stmt = $this->pdo->prepare("
             SELECT u.id, u.nombre, u.apellido, r.nombre AS rol,
@@ -333,7 +357,7 @@ class Admin {
     private function filtroAuditoria($filtros) {
         $where = ['1 = 1'];
         $params = [];
-        if (in_array($filtros['accion'] ?? '', ['INSERT', 'UPDATE', 'DELETE'], true)) {
+        if (in_array($filtros['accion'] ?? '', ['INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FALLIDO'], true)) {
             $where[] = 'a.accion = ?';
             $params[] = $filtros['accion'];
         }

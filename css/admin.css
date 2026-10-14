@@ -237,6 +237,17 @@ td > .admin-sub:not(:first-child) {
   background: rgba(192, 57, 43, 0.1);
 }
 
+/* Inicio de sesión, y contraseña equivocada al iniciar sesión */
+.admin-accion-login {
+  color: var(--navy-light);
+  background: rgba(83, 100, 138, 0.1);
+}
+
+.admin-accion-login_fallido {
+  color: var(--navy);
+  background: rgba(30, 58, 95, 0.1);
+}
+
 /* Cambio de rol en la misma fila */
 .admin-rol {
   display: flex;

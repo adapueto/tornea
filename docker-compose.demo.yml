@@ -1,0 +1,9 @@
+# Datos de prueba para una demo: torneos, equipos y cuentas con la contraseña tornea123.
+# NUNCA en un servidor público: cualquiera podría entrar como administrador.
+# Se suma a producción así:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.demo.yml up -d --build
+# Solo se cargan si la base está vacía (la primera vez que arranca).
+services:
+  db:
+    volumes:
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro

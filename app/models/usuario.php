@@ -4,6 +4,10 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../helpers/validacion.php';
 
 class Usuario {
+    // Después de tantos fallos seguidos, la cuenta espera unos minutos
+    const MAX_INTENTOS = 5;
+    const MINUTOS_BLOQUEO = 15;
+
     private $pdo;
 
     public function __construct() {
@@ -75,16 +79,60 @@ class Usuario {
             return ['exito' => false, 'mensaje' => 'Email o contraseña incorrectos'];
         }
 
-        if (!password_verify($password, $usuario['password'])) {
-            return ['exito' => false, 'mensaje' => 'Email o contraseña incorrectos'];
+        // De a un intento por cuenta: si llegan muchos juntos, esperan en fila.
+        // Así no pueden pasar todos antes de que se anote el primer fallo.
+        $candado = 'tornea_login_' . $usuario['id'];
+        $stmt = $this->pdo->prepare('SELECT GET_LOCK(?, 10)');
+        $stmt->execute([$candado]);
+        if ((int) $stmt->fetchColumn() !== 1) {
+            return ['exito' => false, 'mensaje' => 'No pudimos revisar tus datos. Probá de nuevo en unos segundos'];
         }
 
+        try {
+            // Si ya se equivocaron muchas veces, no se prueba la contraseña
+            if ($this->fallosRecientes($usuario['id']) >= self::MAX_INTENTOS) {
+                return ['exito' => false, 'mensaje' => 'Demasiados intentos fallidos con esta cuenta. Esperá '
+                    . self::MINUTOS_BLOQUEO . ' minutos y probá de nuevo'];
+            }
+
+            if (!password_verify($password, $usuario['password'])) {
+                // No se sabe quién fue: queda sin usuario, sobre la cuenta que intentaron usar
+                $this->auditar(null, 'LOGIN_FALLIDO', $usuario['id']);
+                return ['exito' => false, 'mensaje' => 'Email o contraseña incorrectos'];
+            }
+
+            // Entró bien: queda anotado y los fallos anteriores dejan de contar
+            $this->auditar($usuario['id'], 'LOGIN', $usuario['id']);
+        } finally {
+            $stmt = $this->pdo->prepare('SELECT RELEASE_LOCK(?)');
+            $stmt->execute([$candado]);
+        }
+
+        // La contraseña ya no hace falta: no se guarda en la sesión
+        unset($usuario['password']);
         return ['exito' => true, 'usuario' => $usuario];
+    }
+
+    // Cuántas veces se equivocaron con esta cuenta en los últimos minutos,
+    // sin contar los fallos de antes de entrar bien o de cambiar los datos
+    private function fallosRecientes($usuario_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM auditoria
+            WHERE tabla_afectada = 'usuarios' AND registro_id = ? AND accion = 'LOGIN_FALLIDO'
+              AND fecha > NOW() - INTERVAL " . self::MINUTOS_BLOQUEO . " MINUTE
+              AND id > (
+                  SELECT COALESCE(MAX(id), 0) FROM auditoria
+                  WHERE tabla_afectada = 'usuarios' AND registro_id = ? AND accion IN ('LOGIN', 'UPDATE')
+              )
+        ");
+        $stmt->execute([$usuario_id, $usuario_id]);
+        return (int) $stmt->fetchColumn();
     }
 
     public function buscarPorId($id) {
     $stmt = $this->pdo->prepare('
-        SELECT u.*, r.nombre as rol 
+        SELECT u.id, u.nombre, u.apellido, u.email, u.fecha_nac, u.perfil_publico, u.created_at,
+               r.nombre as rol
         FROM usuarios u
         JOIN usuario_roles ur ON u.id = ur.usuario_id
         JOIN roles r ON ur.rol_id = r.id
