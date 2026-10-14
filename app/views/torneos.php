@@ -1,7 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/torneo.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // Búsqueda y filtros (llegan también desde el buscador de la página principal)
 $filtros = [

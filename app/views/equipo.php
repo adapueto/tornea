@@ -1,7 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/equipo.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // Página de un equipo: integrantes, torneos en los que está inscripto, invitaciones
 // y acciones del líder (RF-13 a RF-17). La ven sus integrantes, los administradores

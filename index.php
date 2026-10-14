@@ -1,7 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/arranque.php';
 require_once __DIR__ . '/app/models/torneo.php';
-require_once __DIR__ . '/app/helpers/formato.php';
 
 $modelo = new Torneo();
 // Pasa a "en curso" los torneos que ya empezaron, antes de mostrarlos

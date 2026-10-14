@@ -36,6 +36,7 @@ Cada resultado actualiza la tabla de posiciones o la llave automáticamente, y c
 tornea/
 ├── index.php                      # Página principal
 ├── app/
+│   ├── arranque.php               # Lo que cargan primero todas las páginas: sesión, helpers y página de error
 │   ├── controllers/               # Reciben los formularios (POST) y redirigen con un mensaje
 │   │   ├── UsuarioController.php  #   registro, login, logout, perfil
 │   │   ├── TorneoController.php   #   crear, editar, publicar, iniciar, eliminar
@@ -56,7 +57,7 @@ tornea/
 │   │   ├── equipos.php, equipo.php
 │   │   ├── perfil.php, perfil-editar.php, login.php, register.php
 │   │   ├── admin.php              #   panel de administración
-│   │   └── partials/              #   header, footer, tarjetas y formularios reutilizables
+│   │   └── partials/              #   header, footer, tarjetas, formularios y página de error
 │   └── helpers/formato.php        # Funciones para mostrar datos (escape, fechas, etiquetas)
 ├── config/database.php            # Conexión PDO (lee DB_HOST, DB_NAME, DB_USER, DB_PASS)
 ├── css/                           # Un archivo por sección del sitio
@@ -68,7 +69,9 @@ tornea/
 │   ├── tools/generar_seed.py      # Genera seed.sql
 │   ├── dcl.example.sql            # Usuarios y permisos de MySQL (instalación local)
 │   └── docker/02-dcl.sh           # Usuarios y permisos de MySQL (Docker)
-├── docker/php.ini
+├── docker/
+│   ├── php.ini, php.prod.ini      # Configuración de PHP (desarrollo y producción)
+│   └── apache-tornea.conf         # Qué se puede abrir desde el navegador en Docker (lo demás da 403)
 ├── Dockerfile
 ├── docker-compose.yml
 └── docs/

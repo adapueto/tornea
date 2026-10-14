@@ -27,7 +27,12 @@ function conectar() {
     } catch (PDOException $e) {
         // El detalle queda en el log del servidor; a la persona solo le mostramos qué hacer
         error_log('Error de conexión a la base: ' . $e->getMessage());
+        $mensaje = 'No pudimos conectarnos con la base de datos. Probá de nuevo en unos minutos.';
+        // Con el arranque cargado se muestra la página de error común
+        if (function_exists('mostrarError')) {
+            mostrarError(503, $mensaje);
+        }
         http_response_code(503);
-        exit('No pudimos conectarnos con la base de datos. Probá de nuevo en unos minutos.');
+        exit($mensaje);
     }
 }

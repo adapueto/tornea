@@ -1,8 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/admin.php';
 require_once __DIR__ . '/../models/torneo.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // Panel de administración: reportes, todos los torneos, usuarios y roles, e historial de cambios.
 // Solo para administradores (RF-07, RNF-18); el rol se consulta en la base.

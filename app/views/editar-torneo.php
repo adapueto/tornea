@@ -1,7 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/torneo.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // Editar un torneo (RF-19): solo sus organizadores, y solo si es borrador o publicado
 

@@ -1,7 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../arranque.php';
 require_once __DIR__ . '/../models/equipo.php';
-require_once __DIR__ . '/../helpers/formato.php';
 
 // "Mis equipos": invitaciones recibidas, crear un equipo y los equipos del usuario (RF-13, RF-17)
 

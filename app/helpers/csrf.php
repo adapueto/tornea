@@ -21,7 +21,8 @@ function campoCsrf() {
 // Si la sesión todavía no tiene token, también se rechaza (los dos vacíos coinciden).
 function verificarCsrf() {
     $enSesion = $_SESSION['csrf'] ?? '';
-    $enPost = $_POST['csrf'] ?? '';
+    // Si no llega un texto (por ejemplo, una lista), cuenta como que no vino
+    $enPost = is_string($_POST['csrf'] ?? null) ? $_POST['csrf'] : '';
     if ($enSesion === '' || !hash_equals($enSesion, $enPost)) {
         http_response_code(403);
         exit('Petición no válida');

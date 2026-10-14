@@ -1,9 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/usuario.php';
-require_once __DIR__ . '/../helpers/csrf.php';
-
-session_start();
+require_once __DIR__ . '/../arranque.php';
 
 $accion = $_GET['accion'] ?? '';
 
