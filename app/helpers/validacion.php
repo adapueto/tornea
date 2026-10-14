@@ -15,10 +15,15 @@ function validarDatosUsuario($nombre, $apellido, $email, $password = null) {
     if (mb_strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errores[] = 'Ingresá un email válido, por ejemplo nombre@dominio.com';
     }
-    if ($password !== null && mb_strlen($password) < 8) {
+    if ($password !== null && !passwordValida($password)) {
         $errores[] = 'La contraseña tiene que tener al menos 8 caracteres';
     }
     return $errores;
+}
+
+// La regla de la contraseña, para usarla en todos lados igual
+function passwordValida($password) {
+    return mb_strlen($password) >= 8;
 }
 
 // Lee un campo del formulario. Si no llega como texto, lo toma como vacío

@@ -12,6 +12,9 @@ COPY docker/apache-tornea.conf /etc/apache2/conf-enabled/tornea-acceso.conf
 # El código usa rutas absolutas /tornea/..., así que la app vive en /var/www/html/tornea
 COPY . /var/www/html/tornea
 
+# Los comandos por consola (docker compose exec) arrancan en la carpeta de la app
+WORKDIR /var/www/html/tornea
+
 # La raíz del servidor redirige a la app
 RUN printf '<?php header("Location: /tornea/index.php");\n' > /var/www/html/index.php
 
