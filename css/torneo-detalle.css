@@ -59,11 +59,29 @@
   padding: 48px 0 80px;
 }
 
+/* Las rondas van siempre en columnas; si no entran, la llave se desliza de costado */
 .bracket {
-  margin-top: 32px;
   display: flex;
-  flex-direction: column;
-  gap: 40px;
+  align-items: flex-start;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  /* Lugar para la sombra de las tarjetas.
+     Los costados usan el mismo relleno del container, así no se sale de la pantalla */
+  padding: 20px 24px 40px;
+  margin: 12px -24px -24px;
+  scroll-padding-inline: 24px;
+}
+
+/* El borde del foco va por dentro: en celular la llave toca los bordes de la pantalla */
+.bracket:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Cada ronda crece si sobra lugar, pero nunca baja de 260px */
+.bracket-round {
+  flex: 1 0 260px;
+  scroll-snap-align: start;
 }
 
 .bracket-round-title {
@@ -278,21 +296,10 @@
 
 /* ===== Responsive — mobile first ===== */
 
-/* Tablet y más grande: las rondas del bracket se acomodan en columnas */
+/* Tablet y más grande */
 @media (min-width: 768px) {
   .participantes-lista {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .bracket {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 24px;
-  }
-
-  .bracket-round {
-    flex: 1;
-    min-width: 0;
   }
 
   .torneo-detalle-datos {

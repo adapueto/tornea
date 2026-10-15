@@ -191,7 +191,7 @@ if (!$torneo) {
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css?v=7" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=5" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=10" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=11" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=6" />
   <link rel="stylesheet" href="/tornea/css/equipos.css?v=2" />
 </head>
@@ -539,7 +539,7 @@ if (!$torneo) {
             <?php endif; ?>
 
             <?php if ($llave): ?>
-              <div class="bracket">
+              <div class="bracket" tabindex="0" role="region" aria-label="Llave del torneo">
                 <?php foreach ($llave as $ronda): ?>
                   <div class="bracket-round">
                     <h3 class="bracket-round-title"><?= nombreRondaEliminacion($ronda['cruces']) ?></h3>

@@ -96,7 +96,7 @@ $nombres_tipo = ['liga' => 'Liga', 'eliminacion' => 'Eliminación', 'suizo' => '
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/tornea/css/style.css?v=7" />
   <link rel="stylesheet" href="/tornea/css/torneos.css?v=5" />
-  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=10" />
+  <link rel="stylesheet" href="/tornea/css/torneo-detalle.css?v=11" />
   <link rel="stylesheet" href="/tornea/css/auth.css?v=6" />
   <link rel="stylesheet" href="/tornea/css/admin.css?v=7" />
 </head>
