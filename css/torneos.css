@@ -93,12 +93,12 @@
 }
 
 .torneo-estado-publicado {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .torneo-estado-en-curso {
-  color: var(--gold);
+  color: var(--gold-texto);
   background: rgba(229, 116, 14, 0.12);
 }
 
@@ -179,8 +179,8 @@
 }
 
 .btn-peligro {
-  border: 2px solid var(--red);
-  color: var(--red);
+  border: 2px solid var(--red-texto);
+  color: var(--red-texto);
   background: transparent;
 }
 
@@ -228,5 +228,5 @@
 .torneos-resultado a {
   margin-left: 6px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--green-texto);
 }

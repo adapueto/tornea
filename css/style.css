@@ -13,6 +13,10 @@
   --red: #c0392b;
   --gold: #e5740e;
   --gold-light: #ea9243;
+  /* Versiones más oscuras para letras (o fondos con letra blanca), así se leen bien */
+  --green-texto: #237047;
+  --gold-texto: #9a4f08;
+  --red-texto: #a93226;
   --gray-text: #5a6b7a;
   --bg-light: #eef3f8;
   --white: #ffffff;
@@ -147,11 +151,11 @@ a {
 }
 
 .nav-link:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .nav-link.nav-active {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== Hero ===== */
@@ -498,7 +502,7 @@ a {
   margin-left: 4px;
   padding: 1px 6px;
   border-radius: var(--radius-pill);
-  background: var(--gold);
+  background: var(--gold-texto);
   color: var(--white);
   font-size: 0.75rem;
   font-weight: 700;
@@ -551,7 +555,7 @@ a {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--gold);
+    background: var(--gold-texto);
     border: 2px solid var(--bg-light);
   }
 

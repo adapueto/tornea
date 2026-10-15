@@ -198,7 +198,7 @@
 }
 
 a.admin-enlace:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .admin-sub {
@@ -223,17 +223,17 @@ td > .admin-sub:not(:first-child) {
 }
 
 .admin-accion-insert {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .admin-accion-update {
-  color: var(--gold);
+  color: var(--gold-texto);
   background: rgba(229, 116, 14, 0.12);
 }
 
 .admin-accion-delete {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.1);
 }
 
@@ -250,12 +250,12 @@ td > .admin-sub:not(:first-child) {
 
 /* Cambio de contraseña, y contraseña actual equivocada en editar perfil */
 .admin-accion-clave {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .admin-accion-clave_fallida {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.1);
 }
 
