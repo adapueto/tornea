@@ -99,7 +99,6 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
   border-color: var(--green);
   background: var(--white);
 }
