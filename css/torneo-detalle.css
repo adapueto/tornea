@@ -13,7 +13,7 @@
 }
 
 .volver-link:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .torneo-detalle-top {
@@ -126,7 +126,7 @@
 }
 
 .match-team-ganador .match-team-score {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .match-meta {
@@ -150,12 +150,12 @@
 }
 
 .match-estado-finalizado {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .match-estado-en-curso {
-  color: var(--gold);
+  color: var(--gold-texto);
   background: rgba(229, 116, 14, 0.12);
 }
 
@@ -373,12 +373,12 @@
 }
 
 .mensaje-exito {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .mensaje-error {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.1);
 }
 
@@ -398,17 +398,17 @@
 }
 
 .inscripcion-pendiente {
-  color: var(--gold);
+  color: var(--gold-texto);
   background: rgba(229, 116, 14, 0.12);
 }
 
 .inscripcion-aprobado {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .inscripcion-rechazado {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.1);
 }
 

@@ -75,12 +75,12 @@
 }
 
 .perfil-badge-publico {
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
 }
 
 .perfil-badge-privado {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.12);
 }
 
@@ -188,7 +188,7 @@
   flex-shrink: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--green);
+  color: var(--green-texto);
   background: rgba(46, 137, 86, 0.12);
   border-radius: var(--radius-pill);
   padding: 5px 12px;
@@ -241,7 +241,7 @@
 
 /* Estado de la inscripción en "Torneos en los que participo" */
 .participacion-pendiente {
-  color: var(--gold);
+  color: var(--gold-texto);
   background: rgba(229, 116, 14, 0.12);
 }
 
@@ -265,7 +265,7 @@
 }
 
 .participacion-perdido {
-  color: var(--red);
+  color: var(--red-texto);
   background: rgba(192, 57, 43, 0.1);
 }
 

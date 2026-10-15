@@ -142,11 +142,11 @@
 }
 
 .form-link:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .form-link-strong {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .btn-block {

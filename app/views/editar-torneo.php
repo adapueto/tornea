@@ -51,8 +51,8 @@ $hoy = $modelo->fechaHoy();
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/tornea/css/style.css?v=6" />
-  <link rel="stylesheet" href="/tornea/css/auth.css?v=5" />
+  <link rel="stylesheet" href="/tornea/css/style.css?v=7" />
+  <link rel="stylesheet" href="/tornea/css/auth.css?v=6" />
 </head>
 <body>
 
@@ -67,11 +67,11 @@ $hoy = $modelo->fechaHoy();
         <p class="auth-subtitle"><?= e($torneo['nombre']) ?> · <?= etiquetaEstado($torneo['estado']) ?></p>
 
         <?php if (isset($_SESSION['error'])): ?>
-          <p style="color:red; margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
+          <p style="color: var(--red-texto); margin-bottom: 12px;"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['exito'])): ?>
-          <p style="color:green; margin-bottom: 12px;"><?= $_SESSION['exito']; unset($_SESSION['exito']); ?></p>
+          <p style="color: var(--green-texto); margin-bottom: 12px;"><?= e($_SESSION['exito']); unset($_SESSION['exito']); ?></p>
         <?php endif; ?>
 
         <?php
