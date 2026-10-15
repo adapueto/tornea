@@ -280,7 +280,8 @@ class Equipo {
             return 'Este torneo es individual.';
         }
 
-        $stmt = $this->pdo->prepare('SELECT 1 FROM participantes WHERE torneo_id = ? AND equipo_id = ?');
+        // Si lo rechazaron, el líder puede volver a pedirla
+        $stmt = $this->pdo->prepare("SELECT 1 FROM participantes WHERE torneo_id = ? AND equipo_id = ? AND estado <> 'rechazado'");
         $stmt->execute([$torneo['id'], $equipo_id]);
         if ($stmt->fetch()) {
             return 'El equipo ya está inscripto en este torneo.';
@@ -319,14 +320,32 @@ class Equipo {
             return ['exito' => false, 'mensaje' => $motivo];
         }
 
+        $stmt = $this->pdo->prepare("SELECT id FROM participantes WHERE torneo_id = ? AND equipo_id = ? AND estado = 'rechazado'");
+        $stmt->execute([$torneo_id, $equipo_id]);
+        $rechazada = $stmt->fetchColumn();
+
         $this->pdo->beginTransaction();
         try {
-            $stmt = $this->pdo->prepare("
-                INSERT INTO participantes (torneo_id, equipo_id, tipo, estado)
-                VALUES (?, ?, 'equipo', 'pendiente')
-            ");
-            $stmt->execute([$torneo_id, $equipo_id]);
-            $this->auditar($usuario_id, 'INSERT', 'participantes', $this->pdo->lastInsertId());
+            if ($rechazada) {
+                // Ya tenía una fila rechazada: vuelve a quedar pendiente, al final de la cola
+                $stmt = $this->pdo->prepare("
+                    UPDATE participantes SET estado = 'pendiente', created_at = NOW()
+                    WHERE id = ? AND estado = 'rechazado'
+                ");
+                $stmt->execute([$rechazada]);
+                if ($stmt->rowCount() === 0) {
+                    $this->pdo->rollBack();
+                    return ['exito' => false, 'mensaje' => 'El equipo ya está inscripto en este torneo.'];
+                }
+                $this->auditar($usuario_id, 'UPDATE', 'participantes', $rechazada);
+            } else {
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO participantes (torneo_id, equipo_id, tipo, estado)
+                    VALUES (?, ?, 'equipo', 'pendiente')
+                ");
+                $stmt->execute([$torneo_id, $equipo_id]);
+                $this->auditar($usuario_id, 'INSERT', 'participantes', $this->pdo->lastInsertId());
+            }
             $this->pdo->commit();
         } catch (PDOException $e) {
             $this->pdo->rollBack();
@@ -336,7 +355,9 @@ class Equipo {
             return ['exito' => false, 'mensaje' => $mensaje];
         }
 
-        return ['exito' => true, 'mensaje' => "Inscribiste a {$equipo['nombre']}. Queda pendiente hasta que el organizador la apruebe."];
+        return ['exito' => true, 'mensaje' => $rechazada
+            ? "Volviste a pedir la inscripción de {$equipo['nombre']}. Queda pendiente hasta que el organizador la revise."
+            : "Inscribiste a {$equipo['nombre']}. Queda pendiente hasta que el organizador la apruebe."];
     }
 
     // El líder saca al equipo de un torneo que todavía no empezó
