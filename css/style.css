@@ -48,6 +48,13 @@ a {
   color: inherit;
 }
 
+/* Marca dónde está el foco al navegar con el teclado
+   (en botones y links no aparece con el mouse; en los campos de texto sí) */
+:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
 /* ===== Buttons ===== */
 /* Mobile: botones más compactos para que entren en pantallas angostas */
 .btn {
@@ -258,6 +265,12 @@ a {
   box-shadow: var(--shadow-soft);
 }
 
+/* Cuando se escribe en el buscador se marca la píldora entera */
+.search-bar:focus-within {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
 .search-icon {
   flex-shrink: 0;
   width: 40px;
@@ -273,12 +286,16 @@ a {
   flex: 1;
   min-width: 0;
   border: none;
-  outline: none;
   background: transparent;
   font-family: inherit;
   color: var(--navy);
   font-weight: 600;
   font-size: 0.98rem;
+}
+
+/* El campo no lleva contorno propio: ya lo marca la píldora */
+.search-placeholder:focus-visible {
+  outline: none;
 }
 
 .search-placeholder::placeholder {

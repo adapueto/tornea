@@ -478,7 +478,6 @@
 }
 
 .match-score-input:focus {
-  outline: none;
   border-color: var(--navy-light);
 }
 
