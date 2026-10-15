@@ -73,17 +73,21 @@ if (!$torneo) {
 
     // Lo que ve quien quiere anotarse (no se muestra a los organizadores del torneo)
     $mi_inscripcion = $usuario_id ? $modeloParticipante->buscarInscripcion($id, $usuario_id) : false;
-    $motivo_no_inscribir = $usuario_id && !$mi_inscripcion
+    // También se calcula si lo rechazaron, para saber si puede volver a pedirla
+    $motivo_no_inscribir = $usuario_id && (!$mi_inscripcion || $mi_inscripcion['estado'] === 'rechazado')
         ? $modeloParticipante->motivoNoPuedeInscribirse($torneo, $usuario_id)
         : null;
     // Torneo por equipos: el líder de un equipo lo inscribe (RF-12, RF-13)
     $mi_equipo = false;          // equipo del usuario que ya está inscripto en este torneo
+    $equipo_rechazado = false;    // si a ese equipo lo rechazaron
     $equipos_para_inscribir = []; // equipos que lidera y puede inscribir
     $equipos_bloqueados = [];     // equipos que lidera pero no puede inscribir, con el motivo
     if ($torneo['modalidad'] === 'equipo' && $usuario_id) {
         $modeloEquipo = new Equipo();
         $mi_equipo = $modeloEquipo->equipoInscriptoDelUsuario($id, $usuario_id);
-        if (!$mi_equipo && $torneo['estado'] === 'publicado') {
+        $equipo_rechazado = $mi_equipo && $mi_equipo['estado_inscripcion'] === 'rechazado';
+        // Si rechazaron a su equipo, el líder puede volver a inscribirlo (o inscribir otro)
+        if ((!$mi_equipo || $equipo_rechazado) && $torneo['estado'] === 'publicado') {
             foreach ($modeloEquipo->listarComoLider($usuario_id) as $eq) {
                 $motivo = $modeloEquipo->motivoNoPuedeInscribir($eq['id'], $torneo);
                 if ($motivo) {
@@ -250,7 +254,22 @@ if (!$torneo) {
                   <a href="/tornea/app/views/login.php" class="form-link form-link-strong">Iniciá sesión</a> para anotarte.</p>
 
               <?php elseif ($torneo['modalidad'] === 'equipo'): ?>
-                <?php if ($mi_equipo): ?>
+                <?php if ($equipo_rechazado): ?>
+                  <p class="gestion-ayuda">
+                    <span class="inscripcion-estado inscripcion-rechazado">Rechazado</span>
+                    El organizador rechazó la inscripción de <strong><?= e($mi_equipo['nombre']) ?></strong>.
+                    <?php if ($torneo['estado'] === 'publicado'): ?>
+                      <?php if (!Equipo::esLider($mi_equipo, $usuario_id)): ?>
+                        Si lo hablaron con el organizador, el líder puede volver a inscribirlo.
+                      <?php elseif (in_array($mi_equipo['id'], array_column($equipos_para_inscribir, 'id'))): ?>
+                        <!-- Solo si de verdad se puede: si no, el motivo sale abajo -->
+                        Si lo hablaste con el organizador, podés volver a inscribirlo.
+                      <?php endif; ?>
+                    <?php endif; ?>
+                  </p>
+                <?php endif; ?>
+
+                <?php if ($mi_equipo && !$equipo_rechazado): ?>
                   <p class="gestion-ayuda">
                     <span class="inscripcion-estado inscripcion-<?= e($mi_equipo['estado_inscripcion']) ?>"><?= ucfirst(e($mi_equipo['estado_inscripcion'])) ?></span>
                     Jugás este torneo con el equipo <strong><?= e($mi_equipo['nombre']) ?></strong>.
@@ -288,7 +307,7 @@ if (!$torneo) {
                 <?php elseif ($equipos_bloqueados): ?>
                   <p class="gestion-ayuda">Ninguno de tus equipos se puede inscribir en este torneo:</p>
 
-                <?php else: ?>
+                <?php elseif (!$equipo_rechazado): ?>
                   <p class="gestion-ayuda">
                     Este torneo es por equipos. Para jugarlo, el líder de tu equipo lo inscribe.
                     Si todavía no tenés equipo, <a href="/tornea/app/views/equipos.php" class="form-link form-link-strong">creá uno en Equipos</a>.
@@ -322,6 +341,16 @@ if (!$torneo) {
                       <?= campoCsrf() ?>
                       <input type="hidden" name="torneo_id" value="<?= $id ?>" />
                       <button type="submit" class="btn btn-peligro">Cancelar inscripción</button>
+                    </form>
+                  </div>
+                <?php elseif ($mi_inscripcion['estado'] === 'rechazado' && !$motivo_no_inscribir): ?>
+                  <!-- Lo rechazaron pero la inscripción sigue abierta: puede volver a pedirla -->
+                  <p class="gestion-ayuda">Si lo hablaste con el organizador, podés volver a pedir la inscripción.</p>
+                  <div class="gestion-acciones">
+                    <form action="/tornea/app/controllers/InscripcionController.php?accion=inscribirse" method="post">
+                      <?= campoCsrf() ?>
+                      <input type="hidden" name="torneo_id" value="<?= $id ?>" />
+                      <button type="submit" class="btn btn-gradient">Volver a inscribirme</button>
                     </form>
                   </div>
                 <?php endif; ?>
