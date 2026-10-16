@@ -1,2 +1,5 @@
 # Los scripts que corren dentro de Linux (Docker) necesitan saltos de línea LF
 *.sh text eol=lf
+
+# El archivo de cron no tiene extensión y cron no acepta saltos CRLF
+scripts/servidor/cron/* text eol=lf
