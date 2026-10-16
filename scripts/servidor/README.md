@@ -18,7 +18,8 @@ Por eso los scripts usan `docker compose` para los contenedores y `systemctl` so
 | `monitoreo_tornea.sh` | CPU, RAM, disco, Docker, contenedores, salud de la base y si la página responde. Si un contenedor está caído intenta levantarlo |
 | `gestion_servicios.sh` | Menú para iniciar, detener o reiniciar servicios del sistema o contenedores |
 | `gestion_usuarios.sh` | Menú para crear, listar, modificar y eliminar usuarios de Linux |
-| `cron/tornea` | Programa el respaldo (02:00) y el monitoreo (cada 30 minutos) |
+| `cron/tornea` | Programa el respaldo (02:00) y el monitoreo (cada 30 minutos), para el repo clonado |
+| `cron/crontab_root.txt` | Lo mismo, para los scripts sueltos en `/home/terobyte/scripts` (crontab de root) |
 
 Todos se corren como root (`sudo`).
 
@@ -41,6 +42,30 @@ sudo chmod +x /home/terobyte/tornea/scripts/servidor/*.sh
 # Programar respaldo y monitoreo (cron lee /etc/cron.d solo)
 sudo cp /home/terobyte/tornea/scripts/servidor/cron/tornea /etc/cron.d/tornea
 sudo chmod 644 /etc/cron.d/tornea
+```
+
+### Opción sin git: scripts sueltos en /home/terobyte/scripts
+
+Los scripts también se pueden bajar uno por uno a otra carpeta. El proyecto (con `docker-compose.prod.yml` y `.env`) tiene que seguir en el servidor, porque los scripts manejan esos contenedores. Por defecto lo buscan en `/home/terobyte/tornea`. Si está en otro lado, cambiá `DIR_PROYECTO_SUELTO` en `config.sh`.
+
+```bash
+mkdir -p /home/terobyte/scripts && cd /home/terobyte/scripts
+URL=https://raw.githubusercontent.com/adapueto/tornea/main/scripts/servidor
+for f in config.sh backup_tornea.sh monitoreo_tornea.sh gestion_servicios.sh gestion_usuarios.sh; do
+  curl -fsSO "$URL/$f"
+done
+curl -fsSO "$URL/cron/crontab_root.txt"
+chmod +x *.sh
+```
+
+`config.sh` es obligatorio: los demás lo cargan.
+
+El cron va en el crontab de **root**, no en el de terobyte, porque los scripts necesitan root. No importa en qué carpeta estés al instalarlo: cron usa las rutas completas que están en el archivo.
+
+```bash
+sudo crontab -l                      # si root ya tiene tareas, sumalas a crontab_root.txt antes
+sudo crontab crontab_root.txt        # instala (reemplaza lo que hubiera)
+sudo crontab -l                      # comprobar
 ```
 
 ## Respaldos
