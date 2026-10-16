@@ -78,6 +78,7 @@ tornea/
 ├── docker-compose.prod.yml        # Producción (sin datos de prueba)
 ├── docker-compose.demo.yml        # Se suma a producción para cargar los datos de prueba
 ├── scripts/crear-admin.php        # Crea el primer administrador desde la consola
+├── scripts/servidor/              # Respaldo, monitoreo, servicios y usuarios del servidor (ver su README)
 └── docs/
     ├── requerimientos.md          # RF, RNF y resumen del MER
     ├── mer-vs-esquema.md          # MER vs. base real, con diagrama
