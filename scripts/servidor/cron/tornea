@@ -1,12 +1,12 @@
 # Tareas programadas de Tornea - Terobyte
 # Se instala copiándolo a /etc/cron.d/tornea (ver scripts/servidor/README.md).
 # Corren como root porque escriben en /var/backups y /var/log y manejan Docker.
-# Si el repo no está en /opt/tornea, cambiar las rutas.
+# Si el repo no está en /home/terobyte/tornea, cambiar las rutas.
 #
 # minuto hora día mes día-semana usuario comando
 
 # Respaldo Tornea - todos los días a las 02:00
-0 2 * * * root /opt/tornea/scripts/servidor/backup_tornea.sh
+0 2 * * * root /home/terobyte/tornea/scripts/servidor/backup_tornea.sh
 
 # Monitoreo Tornea - cada 30 minutos
-*/30 * * * * root /opt/tornea/scripts/servidor/monitoreo_tornea.sh
+*/30 * * * * root /home/terobyte/tornea/scripts/servidor/monitoreo_tornea.sh

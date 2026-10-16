@@ -16,7 +16,7 @@ Lo que no aparece acá está implementado.
 | RF-63, RNF-34 — Registrar los cambios | En parte (se sabe quién y cuándo, no qué cambió) |
 | RNF-24 — Errores desde un único mecanismo | Hecho (falta unificar los avisos) |
 | RNF-25 — Rutas claras (TICKET-7, front controller) | En parte (arranque común y acceso cerrado; rutas largas) |
-| RNF-30 a RNF-33 — Respaldos y mantenimiento | En curso |
+| RNF-30 a RNF-33 — Respaldos y mantenimiento | Hecho |
 | RNF-35 — Seguridad (OWASP) | Hecho |
 | RNF-36 — HTTPS al publicar | Pendiente del servidor |
 
@@ -79,9 +79,11 @@ Los números de TICKET son los de la lista interna de tareas de la entrega, no l
 
 ### RNF-30 a RNF-33 — Respaldos y mantenimiento
 
-- **Hoy:** la base ya tiene un usuario `tornea_backup` que solo puede leer y bloquear tablas (`SELECT, LOCK TABLES` en `database/docker/02-dcl.sh`), y los cambios importantes se hacen dentro de transacciones (si algo falla a mitad, no queda nada a medias). Pero todavía no hay un script que haga el respaldo ni una tarea programada: si se pierde el volumen de la base, se pierde todo.
-- **Por qué:** está en curso (TICKET-10): se va a partir del script de respaldo que ya existe en el servidor.
-- **Cómo se haría:** un script que corra `mysqldump --single-transaction --no-tablespaces` dentro del contenedor de la base con `tornea_backup` (sin `--no-tablespaces`, MySQL 8 pide un permiso que ese usuario no tiene), guarde el archivo con la fecha en una carpeta `backups/` (agregada a `.gitignore` y `.dockerignore`), borre los respaldos viejos y se ejecute todas las noches con `cron`.
+- **Hoy:** los scripts están en `scripts/servidor/` (ver su README) y corren en el servidor AlmaLinux con `cron`:
+  - **Respaldo (RNF-30, RNF-32):** `backup_tornea.sh` todas las noches a las 02:00. Respalda la base entera con `mysqldump --single-transaction --no-tablespaces` dentro del contenedor `db`, con el usuario `tornea_backup` (solo `SELECT, LOCK TABLES`), y los archivos del proyecto: completo los domingos e incremental el resto de los días. Guarda en `/var/backups/tornea`, fuera del repo y de la imagen, y borra lo que tiene más de 28 días.
+  - **Mantenimiento (RNF-31):** `monitoreo_tornea.sh` cada 30 minutos revisa CPU, RAM, disco, el servicio Docker, los contenedores `web` y `db` y que la página responda, y levanta los contenedores si están caídos. `gestion_servicios.sh` y `gestion_usuarios.sh` son menús para el administrador.
+  - **Pérdida de información (RNF-33):** como mucho se pierde lo de un día (desde el último respaldo). Además, los cambios importantes se hacen dentro de transacciones (si algo falla a mitad, no queda nada a medias) y los contenedores tienen `restart: unless-stopped`.
+- **Límites:** los respaldos quedan en el mismo servidor; si se pierde el disco, se pierden también. Copiarlos a otra máquina (por ejemplo con `rsync` en el mismo cron) es el paso siguiente.
 
 ### RNF-35 — Seguridad (OWASP)
 

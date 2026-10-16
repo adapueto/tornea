@@ -24,22 +24,22 @@ Todos se corren como root (`sudo`).
 
 ## Instalación
 
-Se asume que el repo está clonado en `/opt/tornea` y que la app ya está levantada:
+Se asume que el repo está clonado en `/home/terobyte/tornea` (como en la guía de despliegue: `git clone` en el home) y que la app ya está levantada:
 
 ```bash
-cd /opt/tornea
+cd /home/terobyte/tornea
 cp .env.example .env    # y poner contraseñas propias
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Los scripts toman la carpeta del proyecto a partir de dónde están, así que no hace falta cambiar nada en ellos. Lo único con rutas fijas es el archivo de cron: si el repo está en otra carpeta, hay que cambiar `/opt/tornea` ahí.
+Los scripts toman la carpeta del proyecto a partir de dónde están, así que no hace falta cambiar nada en ellos. Lo único con rutas fijas es el archivo de cron: si el repo está en otra carpeta, hay que cambiar `/home/terobyte/tornea` ahí.
 
 ```bash
 # Que se puedan ejecutar
-sudo chmod +x /opt/tornea/scripts/servidor/*.sh
+sudo chmod +x /home/terobyte/tornea/scripts/servidor/*.sh
 
 # Programar respaldo y monitoreo (cron lee /etc/cron.d solo)
-sudo cp /opt/tornea/scripts/servidor/cron/tornea /etc/cron.d/tornea
+sudo cp /home/terobyte/tornea/scripts/servidor/cron/tornea /etc/cron.d/tornea
 sudo chmod 644 /etc/cron.d/tornea
 ```
 
@@ -64,7 +64,7 @@ backup.log
 Base de datos (reemplaza los datos actuales):
 
 ```bash
-cd /opt/tornea
+cd /home/terobyte/tornea
 gunzip -c /var/backups/tornea/incrementales/db_2026-10-16.sql.gz \
   | docker compose -f docker-compose.prod.yml exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" tornea'
 ```
