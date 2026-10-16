@@ -1,0 +1,13 @@
+# Tareas programadas de Tornea - Terobyte
+# Para los scripts copiados sueltos a /home/terobyte/scripts.
+# Va en el crontab de ROOT (los scripts necesitan root):
+#   sudo crontab -l                       <- ver si root ya tiene tareas
+#   sudo crontab crontab_root.txt         <- instalar (REEMPLAZA las que haya)
+#
+# minuto hora día mes día-semana comando
+
+# Respaldo Tornea - todos los días a las 02:00
+0 2 * * * /home/terobyte/scripts/backup_tornea.sh
+
+# Monitoreo Tornea - cada 30 minutos
+*/30 * * * * /home/terobyte/scripts/monitoreo_tornea.sh
