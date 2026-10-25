@@ -18,7 +18,10 @@ Por eso los scripts usan `docker compose` para los contenedores y `systemctl` so
 | `monitoreo_tornea.sh` | CPU, RAM, disco, Docker, contenedores, salud de la base y si la página responde. Si un contenedor está caído intenta levantarlo |
 | `gestion_servicios.sh` | Menú para iniciar, detener o reiniciar servicios del sistema o contenedores |
 | `gestion_usuarios.sh` | Menú para crear, listar, modificar y eliminar usuarios de Linux |
-| `cron/tornea` | Programa el respaldo (02:00) y el monitoreo (cada 30 minutos), para el repo clonado |
+| `monitoreo_bd.sh` | Menú de consultas a la base (estado, registros por tabla, tamaño, resumen, auditoría, usuarios de MySQL, consulta libre). Con `--informe` deja un resumen en el log |
+| `seguridad_tornea.sh` | Firewall (firewalld), reglas de iptables, bloqueo de IPs, fail2ban, SSH sin root, antivirus ClamAV y actualizaciones de seguridad |
+| `tornea.sh` | Menú general: estado del servidor y acceso a todos los demás scripts y a la app en Docker |
+| `cron/tornea` | Programa el respaldo (02:00), el monitoreo (cada 30 minutos), el informe de la base (06:00), el antivirus (domingos 03:00) y los bloqueos de IP al arrancar, para el repo clonado |
 | `cron/crontab_root.txt` | Lo mismo, para los scripts sueltos en `/home/terobyte/scripts` (crontab de root) |
 
 Todos se corren como root (`sudo`).
@@ -51,7 +54,7 @@ Los scripts también se pueden bajar uno por uno a otra carpeta. El proyecto (co
 ```bash
 mkdir -p /home/terobyte/scripts && cd /home/terobyte/scripts
 URL=https://raw.githubusercontent.com/adapueto/tornea/main/scripts/servidor
-for f in config.sh backup_tornea.sh monitoreo_tornea.sh gestion_servicios.sh gestion_usuarios.sh; do
+for f in config.sh tornea.sh backup_tornea.sh monitoreo_tornea.sh monitoreo_bd.sh \n         seguridad_tornea.sh gestion_servicios.sh gestion_usuarios.sh; do
   curl -fsSO "$URL/$f"
 done
 curl -fsSO "$URL/cron/crontab_root.txt"
@@ -110,3 +113,16 @@ Escribe en `/var/log/tornea/monitoreo.log`. Para ver las alertas:
 ```bash
 grep ALERTA /var/log/tornea/monitoreo.log
 ```
+
+## Base de datos
+
+`monitoreo_bd.sh` consulta la base con el usuario `tornea_readonly` (solo `SELECT`), así que la consulta libre no puede borrar ni modificar nada: MySQL la rechaza. La opción de usuarios y permisos usa root porque `tornea_readonly` no puede leer `mysql.user`. El informe diario queda en `/var/log/tornea/bd.log` y avisa con `ALERTA` si la base no responde, si hay más de 50 conexiones o si pasa los 500 MB.
+
+## Seguridad
+
+`seguridad_tornea.sh` se usa así la primera vez: opción 2 (instalar firewalld, fail2ban y ClamAV desde EPEL), 3 (firewall), 5 (fail2ban) y 8 (SSH sin root, **antes comprobar que se entra como terobyte y que sudo funciona**).
+
+- **Firewall:** quedan abiertos solo `ssh`, `http` y `https` (y `dhcpv6-client`, que trae AlmaLinux). Al activar firewalld se reinicia Docker: si no, la red de los contenedores queda fuera de la zona `docker` y la página no llega a la base (`No route to host`). Después de cada `firewall-cmd --reload` la página puede fallar 1 a 3 segundos mientras Docker repone sus reglas.
+- **iptables:** Docker escribe sus propias reglas y el puerto 80 de la app no pasa por las zonas de firewalld. Por eso bloquear una IP la agrega en los dos lados: una regla de firewalld (para SSH) y una en la cadena `DOCKER-USER` (para la página). Esa cadena se borra al reiniciar, por eso la lista se guarda en `/etc/tornea/ips_bloqueadas` y el cron la vuelve a cargar con `--reaplicar`.
+- **SSH:** se escribe `/etc/ssh/sshd_config.d/00-tornea.conf` (`PermitRootLogin no`, `MaxAuthTries 3`). Empieza con `00` porque gana el primer archivo que define cada opción y el instalador de AlmaLinux puede dejar un `25-permitrootlogin.conf` con `yes`. Si `sshd -t` da error, no se aplica.
+- **Antivirus:** escanea el proyecto, `/home`, `/tmp` y `/var/tmp`, y deja el resultado en `/var/log/tornea/antivirus.log` (con `ALERTA` si encuentra algo). Para probarlo se puede usar el archivo de prueba EICAR.

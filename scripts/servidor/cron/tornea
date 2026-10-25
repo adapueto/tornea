@@ -10,3 +10,13 @@
 
 # Monitoreo Tornea - cada 30 minutos
 */30 * * * * root /home/terobyte/tornea/scripts/servidor/monitoreo_tornea.sh
+
+# Informe de la base de datos - todos los días a las 06:00
+0 6 * * * root /home/terobyte/tornea/scripts/servidor/monitoreo_bd.sh --informe
+
+# Antivirus - domingos a las 03:00 (después del respaldo)
+0 3 * * 0 root /home/terobyte/tornea/scripts/servidor/seguridad_tornea.sh --escaneo
+
+# Al prender el servidor, vuelve a bloquear las IPs de la lista
+# (se espera un minuto a que Docker cree la cadena DOCKER-USER)
+@reboot root sleep 60 && /home/terobyte/tornea/scripts/servidor/seguridad_tornea.sh --reaplicar
