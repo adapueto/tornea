@@ -4,3 +4,6 @@ Thumbs.db
 *.log
 .env
 database/dcl.sql
+
+# Informe de la entrega (tiene nombres reales del equipo)
+informe/
